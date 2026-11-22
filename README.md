@@ -26,6 +26,7 @@ docs/       audit, contract, decisions, phase log
 - [Security](docs/05-security.md) - access, sessions, guest links, privacy baseline.
 - [Acceptance](docs/06-acceptance.md) - automated and manual release checks.
 - [Decisions](docs/07-decisions.md) - why the repo and key behaviours look this way.
+- [Local development](docs/08-local-development.md) - ports, env, seed, common errors.
 
 ## Status
 
