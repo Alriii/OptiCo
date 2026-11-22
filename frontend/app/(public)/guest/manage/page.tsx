@@ -1,12 +1,4 @@
-import type { Metadata } from "next";
 import { GuestManager } from "@/components/public/guest-manager";
-
-export const metadata: Metadata = {
-  title: "Manage a guest booking",
-  description: "View and manage the appointment linked to your secure guest link.",
-  referrer: "no-referrer",
-  robots: { index: false, follow: false },
-};
 
 export default function GuestManagePage() {
   return (

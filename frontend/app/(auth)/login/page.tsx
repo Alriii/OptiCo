@@ -1,22 +1,10 @@
-import type { Metadata } from "next";
+import { useSearchParams } from "next/navigation";
 import { LoginForm } from "@/components/features/auth/LoginForm";
 
-export const metadata: Metadata = {
-  title: "Sign in",
-  description: "Sign in to your OptiCo patient or clinic portal.",
-};
+export default function LoginPage() {
+  const searchParams = useSearchParams();
+  const registered = searchParams.get("registered") === "1";
+  const invited = searchParams.get("invited") === "1";
 
-export default async function LoginPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ registered?: string; invited?: string }>;
-}) {
-  const params = await searchParams;
-
-  return (
-    <LoginForm
-      registered={params.registered === "1"}
-      invited={params.invited === "1"}
-    />
-  );
+  return <LoginForm registered={registered} invited={invited} />;
 }

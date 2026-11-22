@@ -1,14 +1,8 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { CalendarCheck } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { ServicesDirectory } from "@/components/public/services-directory";
 import { Button } from "@/components/ui/button";
-
-export const metadata: Metadata = {
-  title: "Services",
-  description: "Optical clinic services, durations, and demo fees.",
-};
 
 export default function ServicesPage() {
   return (

@@ -1,14 +1,8 @@
-import type { Metadata } from "next";
 import { Clock, Mail, MapPin, Phone } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DEMO_CLINIC, DEMO_NOTICE } from "@/lib/demo-clinic";
-
-export const metadata: Metadata = {
-  title: "Contact",
-  description: "Demo clinic contact details and operating hours.",
-};
 
 export default function ContactPage() {
   return (

@@ -1,10 +1,4 @@
-import type { Metadata } from "next";
 import { PolicyPage } from "@/components/public/policy-page";
-
-export const metadata: Metadata = {
-  title: "Terms of use",
-  description: "Terms for using the demo clinic scheduling platform.",
-};
 
 export default function TermsPage() {
   return (

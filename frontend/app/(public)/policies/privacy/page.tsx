@@ -1,10 +1,4 @@
-import type { Metadata } from "next";
 import { PolicyPage } from "@/components/public/policy-page";
-
-export const metadata: Metadata = {
-  title: "Privacy notice",
-  description: "How the demo clinic handles appointment information.",
-};
 
 export default function PrivacyPage() {
   return (

@@ -1,14 +1,8 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { CalendarCheck } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { DoctorsDirectory } from "@/components/public/doctors-directory";
 import { Button } from "@/components/ui/button";
-
-export const metadata: Metadata = {
-  title: "Doctors",
-  description: "Meet the optical clinic care team.",
-};
 
 export default function DoctorsPage() {
   return (

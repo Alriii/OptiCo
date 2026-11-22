@@ -1,18 +1,9 @@
-import type { Metadata } from "next";
+import { useSearchParams } from "next/navigation";
 import { BookingFlow } from "@/components/public/booking-flow";
 
-export const metadata: Metadata = {
-  title: "Request an appointment",
-  description:
-    "Request an optical clinic appointment. Your schedule is confirmed after clinic approval.",
-};
-
-export default async function BookingPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ service?: string }>;
-}) {
-  const { service } = await searchParams;
+export default function BookingPage() {
+  const searchParams = useSearchParams();
+  const service = searchParams.get("service") || undefined;
 
   return (
     <div className="page-shell py-10 sm:py-14">
