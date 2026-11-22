@@ -2,23 +2,29 @@
 
 Optical clinic appointment and operations platform.
 
-This repository is the working record for the project: audit notes, decisions,
-and phase checkpoints. Application code stays in the two existing repositories.
+This repository holds the product code and the working record for the project.
 
-| Layer | Repository | Host |
+```text
+frontend/   Next.js app, deployed on Vercel with root directory "frontend"
+backend/    Express API, deployed on Render with root directory "backend"
+docs/       audit, contract, decisions, phase log
+```
+
+| Layer | Platform | Root directory |
 |---|---|---|
-| Frontend | `arielmaestrodev/portfolio-frontend-itelect2` | Vercel |
-| Backend | `arielmaestrodev/appsdev-api-tutorial` | Render |
-| Database | Neon PostgreSQL | Neon |
+| Frontend | Vercel | `frontend` |
+| Backend | Render | `backend` |
+| Database | Neon PostgreSQL | - |
 
 ## Documents
 
-- [Repository audit](docs/00-repository-audit.md) - what exists today, what can be reused, what blocks progress.
-- [Readiness checklist](docs/01-readiness-checklist.md) - spec areas mapped to current state.
+- [Repository audit](docs/00-repository-audit.md) - starter state, reuse plan, blockers.
+- [Readiness checklist](docs/01-readiness-checklist.md) - spec areas mapped to progress.
 - [Phase log](docs/02-phase-log.md) - checkpoint history.
+- [API contract](docs/03-api-contract.md) - endpoints, roles, envelopes, time rules.
 
 ## Status
 
-Phase 0 (audit) is complete. No OptiCo domain code has been written yet.
-The starter stacks are compatible with the target design, but both repositories
-still serve their original tutorial content.
+Phase 0 audit is complete. Application code is being built in `frontend/` and
+`backend/`. Both starter projects were imported with their original history
+removed; the source content is replaced as the OptiCo domain lands.
