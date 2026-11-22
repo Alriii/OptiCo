@@ -1,91 +1,133 @@
-import axios from "axios";
+import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 
-const backendURL = process.env.NEXT_PUBLIC_BACKEND_URL;
+const BASE_URL = "/api/v1";
+const MUTATION_METHODS = new Set(["post", "put", "patch", "delete"]);
 
-const axiosInstance = axios.create({
-  baseURL: backendURL,
-  withCredentials: true, // Crucial for HTTP-only cookies
+// Auth endpoints must never trigger the refresh-and-retry loop.
+const NO_REFRESH_PATHS = [
+  "/auth/refresh",
+  "/auth/login",
+  "/auth/signup",
+  "/auth/csrf-token",
+  "/auth/accept-invite",
+];
+
+export const api = axios.create({
+  baseURL: BASE_URL,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
+    Accept: "application/json",
   },
 });
 
-// --- Token Rotation State ---
-let isRefreshing = false;
-let failedQueue: any[] = [];
+let csrfToken: string | null = null;
+let csrfRequest: Promise<string | null> | null = null;
 
-const processQueue = (error: any, token: string | null = null) => {
-  failedQueue.forEach((prom) => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
+function readCsrfToken(payload: unknown): string | null {
+  if (!payload || typeof payload !== "object") return null;
+  const body = payload as Record<string, unknown>;
+  const nested =
+    body.data && typeof body.data === "object"
+      ? (body.data as Record<string, unknown>)
+      : null;
+
+  const value = body.csrfToken ?? nested?.csrfToken;
+  return typeof value === "string" && value.length > 0 ? value : null;
+}
+
+/**
+ * Fetches a CSRF token once and reuses it. Pass force=true after a session
+ * change, because the backend rotates the token with the refresh cookie.
+ */
+export async function fetchCsrfToken(force = false): Promise<string | null> {
+  if (!force && csrfToken) return csrfToken;
+  if (csrfRequest) return csrfRequest;
+
+  csrfRequest = api
+    .get("/auth/csrf-token")
+    .then((response) => {
+      csrfToken = readCsrfToken(response.data);
+      return csrfToken;
+    })
+    .catch(() => null)
+    .finally(() => {
+      csrfRequest = null;
+    });
+
+  return csrfRequest;
+}
+
+export async function refreshCsrfToken(): Promise<string | null> {
+  return fetchCsrfToken(true);
+}
+
+export function clearCsrfToken() {
+  csrfToken = null;
+}
+
+api.interceptors.request.use(async (config) => {
+  const method = (config.method ?? "get").toLowerCase();
+  if (!MUTATION_METHODS.has(method)) return config;
+
+  const token = await fetchCsrfToken();
+  if (token) {
+    config.headers.set("x-csrf-token", token);
+  }
+  return config;
+});
+
+let refreshRequest: Promise<void> | null = null;
+
+// Single-flight refresh. Uses a bare axios call so the interceptor cannot
+// recurse into itself when the refresh endpoint returns 401.
+function refreshSession(): Promise<void> {
+  if (refreshRequest) return refreshRequest;
+
+  refreshRequest = (async () => {
+    const token = await fetchCsrfToken(true);
+    await axios.post(
+      `${BASE_URL}/auth/refresh`,
+      {},
+      {
+        withCredentials: true,
+        headers: token ? { "x-csrf-token": token } : undefined,
+      },
+    );
+    await fetchCsrfToken(true);
+  })().finally(() => {
+    refreshRequest = null;
   });
-  failedQueue = [];
-};
 
-axiosInstance.interceptors.response.use(
+  return refreshRequest;
+}
+
+type RetryableConfig = InternalAxiosRequestConfig & { _retry?: boolean };
+
+api.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
+  async (error: AxiosError) => {
+    const config = error.config as RetryableConfig | undefined;
     const status = error.response?.status;
+    const url = config?.url ?? "";
+    const isAuthPath = NO_REFRESH_PATHS.some((path) => url.includes(path));
 
-    // --- Token Rotation Logic ---
-    if (status === 401 && !originalRequest._retry) {
-      if (isRefreshing) {
-        // If already refreshing, wait for it to finish and then retry this request
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        })
-          .then(() => axiosInstance(originalRequest))
-          .catch((err) => Promise.reject(err));
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
+    if (status === 401 && config && !config._retry && !isAuthPath) {
+      config._retry = true;
       try {
-        // Attempt to refresh the token using the same base URL as the instance
-        const refreshUrl = `${axiosInstance.defaults.baseURL}/api/auth/v1/refresh-token`;
-        await axios.post(refreshUrl, {}, { withCredentials: true });
-        
-        processQueue(null);
-        isRefreshing = false;
-
-        // Retry the original request
-        return axiosInstance(originalRequest);
-      } catch (refreshError: any) {
-        processQueue(refreshError, null);
-        isRefreshing = false;
-
-        // Only redirect to login if the refresh itself was an authentication failure
-        const refreshStatus = refreshError.response?.status;
-        if (refreshStatus === 401 || refreshStatus === 403 || refreshStatus === 400) {
-          if (typeof window !== "undefined") {
-            localStorage.removeItem("user");
-            window.location.href = "/login";
-          }
+        await refreshSession();
+        return api(config);
+      } catch (refreshError) {
+        // Let the app decide how to react; the proxy only does optimistic checks.
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("optico:unauthorized"));
         }
-        
         return Promise.reject(refreshError);
       }
     }
 
-    // --- Centralized Error Logging ---
-    if (axios.isCancel(error)) {
-      return Promise.reject(error);
-    }
-
-    if (!status || status >= 500) {
-      console.error(`[API System Error] ${originalRequest.method?.toUpperCase()} ${originalRequest.url}:`, {
-        status: status || "NETWORK_ERROR",
-        message: error.message || "No error message provided",
-      });
-    }
-
     return Promise.reject(error);
-  }
+  },
 );
 
-export default axiosInstance;
+export default api;

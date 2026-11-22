@@ -1,30 +1,12 @@
+import { AppError } from "@/lib/http";
 import { UserRepository } from "@/repositories/user-repository";
+import { toSessionUser } from "@/services/auth/types";
 
-export const getUserSessionService = async (userId: string) => {
-  const userRepository = new UserRepository();
+const userRepository = new UserRepository();
 
-  try {
-    const user = await userRepository.findById(userId);
-
-    if (!user) {
-      return { code: 404, status: "error", message: "User not found" };
-    }
-
-    return {
-      code: 200,
-      status: "success",
-      data: {
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          emailVerified: user.emailVerified,
-        },
-      },
-    };
-  } catch (error) {
-    console.error("getUserSessionService Error", error);
-    return { code: 500, status: "error", message: "Failed to fetch user data" };
-  }
-};
+export async function getUserSessionService(userId: string) {
+  const user = await userRepository.findById(userId);
+  if (!user) throw new AppError(401, "Authentication required");
+  if (user.status !== "ACTIVE") throw new AppError(403, "This account is not active");
+  return { user: toSessionUser(user) };
+}

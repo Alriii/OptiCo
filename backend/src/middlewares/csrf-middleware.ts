@@ -1,64 +1,51 @@
 import type { NextFunction, Request, Response } from "express";
-import type { AuthenticatedRequest } from "@/middlewares/auth-middleware";
-import { verifyRefreshToken } from "@/lib/jwt";
-import { validateRequest, csrfSessionCookieName, csrfTokenCookieName } from "@/lib/csrf";
+import { ENV } from "@/config/env";
+import { failure } from "@/lib/http";
+import { verifyAccessToken } from "@/lib/jwt";
+import { csrfSessionCookieName, validateRequest } from "@/lib/csrf";
 
-// Middleware that protects requests against Cross-Site Request Forgery (CSRF).
-export class CsrfMiddleware {
-  // Skip CSRF validation if AuthMiddleware has already verified Bearer authentication.
-  public execute = (req: Request, res: Response, next: NextFunction) => {
-    // Check if the request was authenticated using a Bearer token.
-    if ((req as AuthenticatedRequest).authMethod === "bearer") {
-      return next();
+const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+
+function bearerToken(req: Request): string | undefined {
+  const [scheme, token] = (req.headers.authorization ?? "").split(" ");
+  return scheme?.toLowerCase() === "bearer" && token ? token.trim() : undefined;
+}
+
+function originAllowed(req: Request): boolean {
+  const origin = req.get("origin");
+  if (origin && !ENV.FRONTEND_ORIGINS.includes(origin.replace(/\/$/, ""))) return false;
+
+  const referer = req.get("referer");
+  if (!origin && referer) {
+    try {
+      const refererOrigin = new URL(referer).origin;
+      if (!ENV.FRONTEND_ORIGINS.includes(refererOrigin)) return false;
+    } catch {
+      return false;
     }
-
-    // Otherwise, proceed with CSRF validation.
-    return this.validate(req, res, next);
-  };
-
-  // Determine whether signup/login requests need CSRF validation.
-  public auth = (req: Request, res: Response, next: NextFunction) => {
-    // Check for browser-related headers or authentication/CSRF cookies.
-    const browserRequest = req.get("origin") || req.get("referer") || req.get("sec-fetch-site")
-      || req.cookies?.accessToken || req.cookies?.refreshToken
-      || req.cookies?.[csrfSessionCookieName] || req.cookies?.[csrfTokenCookieName];
-
-    // Skip CSRF validation if no browser indicators are found and the request uses JSON.
-    if (!browserRequest && req.is("application/json")) {
-      return next();
-    }
-
-    // Otherwise, proceed with CSRF validation.
-    return this.validate(req, res, next);
-  };
-
-  // Determine whether refresh token requests need CSRF validation.
-  public refreshToken = (req: Request, res: Response, next: NextFunction) => {
-    // Retrieve the refresh token from the request body.
-    const token = req.body?.refreshToken;
-
-    // Skip CSRF validation if no auth cookies exist and the body contains a valid refresh token.
-    if (!req.cookies?.accessToken && !req.cookies?.refreshToken && typeof token === "string" && verifyRefreshToken(token)) {
-      return next();
-    }
-
-    // Otherwise, proceed with CSRF validation.
-    return this.validate(req, res, next);
-  };
-
-  // Validate CSRF protection and reject requests that fail validation.
-  private validate(req: Request, res: Response, next: NextFunction) {
-    // Skip CSRF validation for safe HTTP methods that should not modify data.
-    if (["GET", "HEAD", "OPTIONS"].includes(req.method)) {
-      return next();
-    }
-
-    // Allow the request to continue if CSRF validation succeeds.
-    if (validateRequest(req)) {
-      return next();
-    }
-
-    // Reject the request with HTTP 403 if the CSRF token is missing or invalid.
-    return res.status(403).json({ code: 403, status: "error", message: "Invalid or missing CSRF token" });
   }
+
+  return true;
+}
+
+export class CsrfMiddleware {
+  /**
+   * Cookie-authenticated mutations need the double-submit token. Verified Bearer
+   * clients are exempt because the browser cannot attach the token automatically.
+   */
+  public execute = (req: Request, res: Response, next: NextFunction) => {
+    if (SAFE_METHODS.has(req.method)) return next();
+
+    // A valid signed Bearer token is a non-browser client; CSRF does not apply.
+    if (verifyAccessToken(bearerToken(req))) return next();
+
+    if (!originAllowed(req)) return failure(res, 403, "Request origin is not allowed");
+
+    const hasAuthCookie = Boolean(req.cookies?.accessToken || req.cookies?.refreshToken);
+    const hasCsrfSession = Boolean(req.cookies?.[csrfSessionCookieName]);
+    if (!hasAuthCookie && !hasCsrfSession) return next();
+
+    if (validateRequest(req)) return next();
+    return failure(res, 403, "Invalid or missing CSRF token");
+  };
 }

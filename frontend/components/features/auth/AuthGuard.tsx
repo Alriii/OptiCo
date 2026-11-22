@@ -1,53 +1,53 @@
 "use client";
 
-import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import { portalPathForRole, hasRole } from "@/lib/auth-redirect";
+import { LoadingState } from "@/components/shared/loading-state";
 
 interface AuthGuardProps {
   children: React.ReactNode;
-  mode?: "GUEST" | "ADMIN" | "PRIVATE";
+  /** Roles allowed to render. Omit for any authenticated user. */
+  roles?: readonly string[];
+  /** Auth pages: authenticated users are sent to their portal. */
+  guestOnly?: boolean;
 }
 
-export function AuthGuard({ children, mode = "PRIVATE" }: AuthGuardProps) {
-  const { isLoading, isAuthenticated, isAdmin } = useAuth();
+export function AuthGuard({ children, roles, guestOnly = false }: AuthGuardProps) {
+  const { user, isLoading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+
+  const allowed = user ? !roles?.length || hasRole(user.role, roles) : false;
+  const shouldRedirect = guestOnly ? Boolean(user) : !user || !allowed;
 
   useEffect(() => {
     if (isLoading) return;
 
-    if (mode === "GUEST" && isAuthenticated) {
-      // Redirect logged-in users away from guest pages
-      if (isAdmin) {
-        router.push("/admin");
-      } else {
-        router.push("/");
-      }
-    } else if (mode === "ADMIN" && !isAdmin) {
-      // Redirect non-admins away from admin pages
-      if (isAuthenticated) {
-        router.push("/");
-      } else {
-        router.push("/login");
-      }
-    } else if (mode === "PRIVATE" && !isAuthenticated) {
-      // Redirect unauthenticated users away from private pages
-      router.push("/login");
+    if (guestOnly) {
+      if (user) router.replace(portalPathForRole(user.role));
+      return;
     }
-  }, [isLoading, isAuthenticated, isAdmin, mode, router]);
 
-  // Show loading while checking auth or if redirecting
-  if (isLoading || 
-     (mode === "GUEST" && isAuthenticated) || 
-     (mode === "ADMIN" && !isAdmin) || 
-     (mode === "PRIVATE" && !isAuthenticated)) {
+    if (!user) {
+      const next = encodeURIComponent(pathname || "/");
+      router.replace(`/login?next=${next}`);
+      return;
+    }
+
+    if (!allowed) {
+      router.replace(portalPathForRole(user.role));
+    }
+  }, [isLoading, guestOnly, user, allowed, router, pathname]);
+
+  if (isLoading || shouldRedirect) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p className="text-sm text-muted-foreground animate-pulse">Verifying session...</p>
-        </div>
-      </div>
+      <LoadingState
+        title="Checking your session"
+        description="One moment while we open the right workspace."
+        fullScreen
+      />
     );
   }
 

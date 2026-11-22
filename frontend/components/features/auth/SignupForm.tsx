@@ -1,141 +1,128 @@
 "use client";
 
-import z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm } from "react-hook-form";
+import { useState } from "react";
 import Link from "next/link";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { AlertCircle } from "lucide-react";
+import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
+import { signupSchema, type SignupInput } from "@/services/auth.service";
+import { getApiError } from "@/lib/api-error";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
-
-const signupSchema = z.object({
-  name: z
-    .string({ message: "Name is required" })
-    .min(2, "Name must be at least 2 characters"),
-  email: z
-    .string({ message: "Email is required" })
-    .email("Invalid email format"),
-  password: z
-    .string({ message: "Password is required" })
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[0-9]/, "Password must contain at least one number"),
-});
-
-type FormData = z.infer<typeof signupSchema>;
-
-import { useAuth } from "@/context/AuthContext";
 
 export function SignupForm() {
   const { signup } = useAuth();
-  const form = useForm<FormData>({
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const form = useForm<SignupInput>({
     resolver: zodResolver(signupSchema),
-    mode: "onChange",
-    defaultValues: {
-      name: "",
-      email: "",
-      password: "",
-    },
+    defaultValues: { name: "", email: "", password: "" },
+    mode: "onBlur",
   });
 
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (values: SignupInput) => {
+    setFormError(null);
     try {
-      await signup(data);
-      toast.success("Signup successful. Please check your email to verify your account.");
+      await signup(values);
+      toast.success("Account created.");
     } catch (error) {
-      console.log("[Signup Error]", error);
+      const message = getApiError(error, "Account creation failed. Try again.");
+      setFormError(message);
+      toast.error(message);
     }
   };
 
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="text-2xl">Create an Account</CardTitle>
+        <CardTitle className="text-2xl">Create a patient account</CardTitle>
         <CardDescription>
-          Enter your details below to create your account.
+          Public registration creates a patient account only. Clinic staff
+          accounts are created by invitation.
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <form id="signup-form" onSubmit={form.handleSubmit(onSubmit)}>
+      <CardContent className="space-y-4">
+        {formError ? (
+          <p
+            role="alert"
+            className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+          >
+            <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+            {formError}
+          </p>
+        ) : null}
+
+        <form id="signup-form" onSubmit={form.handleSubmit(onSubmit)} noValidate>
           <FieldGroup>
-            <Controller
-              name="name"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="name">Name</FieldLabel>
-                  <Input
-                    {...field}
-                    id="name"
-                    placeholder="John Doe"
-                    autoComplete="name"
-                    aria-invalid={fieldState.invalid}
-                  />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-            <Controller
-              name="email"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="email">Email</FieldLabel>
-                  <Input
-                    {...field}
-                    id="email"
-                    type="email"
-                    placeholder="john@example.com"
-                    autoComplete="email"
-                    aria-invalid={fieldState.invalid}
-                  />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-            <Controller
-              name="password"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="password">Password</FieldLabel>
-                  <Input
-                    {...field}
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
-                    autoComplete="new-password"
-                    aria-invalid={fieldState.invalid}
-                  />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
+            <Field data-invalid={Boolean(form.formState.errors.name)}>
+              <FieldLabel htmlFor="signup-name">Full name</FieldLabel>
+              <Input
+                id="signup-name"
+                autoComplete="name"
+                aria-invalid={Boolean(form.formState.errors.name)}
+                {...form.register("name")}
+              />
+              <FieldError errors={[form.formState.errors.name]} />
+            </Field>
+
+            <Field data-invalid={Boolean(form.formState.errors.email)}>
+              <FieldLabel htmlFor="signup-email">Email</FieldLabel>
+              <Input
+                id="signup-email"
+                type="email"
+                autoComplete="email"
+                aria-invalid={Boolean(form.formState.errors.email)}
+                {...form.register("email")}
+              />
+              <FieldError errors={[form.formState.errors.email]} />
+            </Field>
+
+            <Field data-invalid={Boolean(form.formState.errors.password)}>
+              <FieldLabel htmlFor="signup-password">Password</FieldLabel>
+              <Input
+                id="signup-password"
+                type="password"
+                autoComplete="new-password"
+                aria-invalid={Boolean(form.formState.errors.password)}
+                {...form.register("password")}
+              />
+              <FieldDescription>
+                At least 8 characters, one uppercase letter, and one number.
+              </FieldDescription>
+              <FieldError errors={[form.formState.errors.password]} />
+            </Field>
           </FieldGroup>
         </form>
       </CardContent>
       <CardFooter className="flex flex-col gap-4">
-        <Button 
-          type="submit" 
-          form="signup-form" 
-          className="w-full" 
+        <Button
+          type="submit"
+          form="signup-form"
+          className="w-full"
           disabled={form.formState.isSubmitting}
         >
-          {form.formState.isSubmitting ? "Creating Account..." : "Sign Up"}
+          {form.formState.isSubmitting ? "Creating account…" : "Create account"}
         </Button>
-        <p className="text-sm text-center text-muted-foreground">
+        <p className="text-center text-sm text-muted-foreground">
           Already have an account?{" "}
-          <Link href="/login" className="text-primary hover:underline underline-offset-4">
-            Log in
+          <Link href="/login" className="font-medium text-primary underline-offset-4 hover:underline">
+            Sign in
           </Link>
+        </p>
+        <p className="text-center text-xs leading-relaxed text-muted-foreground">
+          By continuing you acknowledge the{" "}
+          <Link href="/policies/privacy" className="underline underline-offset-4">
+            privacy notice
+          </Link>{" "}
+          and{" "}
+          <Link href="/policies/terms" className="underline underline-offset-4">
+            terms of use
+          </Link>
+          .
         </p>
       </CardFooter>
     </Card>

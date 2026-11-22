@@ -1,29 +1,22 @@
-import { randomBytes } from "node:crypto";
 import { doubleCsrf } from "csrf-csrf";
+import type { CookieOptions } from "express";
 import { ENV } from "@/config/env";
 
-const isProduction = ENV.NODE_ENV === "production";
-
-export const csrfCookieOptions = {
+export const csrfCookieOptions: CookieOptions = {
   httpOnly: true,
-  secure: isProduction,
-  sameSite: isProduction ? "none" as const : "lax" as const,
+  secure: ENV.IS_PRODUCTION,
+  sameSite: "lax",
   path: "/",
+  maxAge: ENV.REFRESH_TOKEN_TTL_SECONDS * 1000,
 };
 
-export const csrfSessionCookieName = isProduction ? "__Host-csrf-session" : "csrf-session";
-export const csrfTokenCookieName = isProduction ? "__Host-csrf-token" : "csrf-token";
-
-// Use a stable configured secret in production. The random development secret resets on restart.
-const csrfSecret = ENV.CSRF_SECRET || randomBytes(32).toString("hex");
-if (isProduction && !ENV.CSRF_SECRET) {
-  throw new Error("CSRF_SECRET is required in production");
-}
+export const csrfSessionCookieName = "csrf-session";
+export const csrfTokenCookieName = "csrf-token";
 
 export const { generateCsrfToken, validateRequest } = doubleCsrf({
-  getSecret: () => csrfSecret,
-  // Refresh-token rotation invalidates the old CSRF token. Before login, use an anonymous ID.
-  getSessionIdentifier: (req) => req.cookies?.refreshToken || req.cookies?.accessToken || req.cookies?.[csrfSessionCookieName] || "",
+  getSecret: () => ENV.CSRF_SECRET,
+  // Bound to our own session cookie so a login or refresh does not invalidate it.
+  getSessionIdentifier: (req) => req.cookies?.[csrfSessionCookieName] ?? "",
   cookieName: csrfTokenCookieName,
   cookieOptions: csrfCookieOptions,
   getCsrfTokenFromRequest: (req) => req.get("x-csrf-token"),

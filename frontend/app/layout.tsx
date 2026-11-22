@@ -1,51 +1,33 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/provider/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { AuthProvider } from "@/context/AuthContext";
 import "@/styles/globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  ),
   title: {
-    default: "Developer Portfolio",
-    template: "%s | Developer Portfolio",
+    default: "OptiCo — Optical Clinic Appointments",
+    template: "%s | OptiCo",
   },
-  description: "A professional portfolio showcasing full-stack development projects and expertise.",
-  keywords: ["Full Stack Developer", "Web Development", "React", "Next.js", "Portfolio"],
-  authors: [{ name: "Developer Name" }],
-  creator: "Developer Name",
+  description:
+    "Request an eye care appointment, manage your visit, and keep your clinic schedule in one calm place.",
+  keywords: [
+    "optical clinic",
+    "eye examination",
+    "optometry",
+    "appointment booking",
+    "OptiCo",
+  ],
   openGraph: {
     type: "website",
-    locale: "en_US",
-    url: "https://portfolio.example.com",
-    siteName: "Developer Portfolio",
-    title: "Developer Portfolio",
-    description: "A professional portfolio showcasing full-stack development projects and expertise.",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Developer Portfolio",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Developer Portfolio",
-    description: "A professional portfolio showcasing full-stack development projects and expertise.",
-    images: ["/og-image.png"],
-    creator: "@developer",
+    locale: "en_PH",
+    siteName: "OptiCo",
+    title: "OptiCo — Optical Clinic Appointments",
+    description:
+      "Request an eye care appointment and manage your visit with OptiCo.",
   },
   robots: {
     index: true,
@@ -53,13 +35,18 @@ export const metadata: Metadata = {
   },
 };
 
-import { AuthProvider } from "@/context/AuthContext";
-
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+      <body>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+        >
           <AuthProvider>
             {children}
             <Toaster />

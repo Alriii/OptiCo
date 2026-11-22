@@ -1,61 +1,61 @@
-import { Request, Response } from "express";
-import { signupService, loginService, refreshTokenService, logoutService, getUserSessionService, getCsrfTokenService } from "@/services/auth";
+import type { Request, Response } from "express";
+import { success } from "@/lib/http";
 import { setAuthCookies, clearAuthCookies } from "@/lib/auth-cookies";
+import type { AuthenticatedRequest } from "@/middlewares/auth-middleware";
+import {
+  acceptInviteService,
+  getCsrfTokenService,
+  getUserSessionService,
+  loginService,
+  logoutService,
+  refreshTokenService,
+  signupService,
+} from "@/services/auth";
 
 export class AuthController {
-  // Get CSRF Token Function Controller
   public getCsrfToken = (req: Request, res: Response) => {
     const result = getCsrfTokenService(req, res);
-    return res.status(result.code).json(result);
+    return success(res, result);
   };
 
-  // Signup Function Controller
   public signup = async (req: Request, res: Response) => {
-    const { name, email, password } = req.body ?? {};
-    const result = await signupService(name, email, password);
-    return res.status(result.code).json(result);
-  }
+    const { name, email, password } = req.body;
+    const result = await signupService({ name, email, password });
+    setAuthCookies(res, result.tokens);
+    return success(res, { user: result.user }, "Account created", 201);
+  };
 
-  // Login Function Controller
   public login = async (req: Request, res: Response) => {
-    const { email, password } = req.body ?? {};
-    const result = await loginService(email, password);
+    const { email, password } = req.body;
+    const result = await loginService({ email, password });
+    setAuthCookies(res, result.tokens);
+    return success(res, { user: result.user }, "Signed in");
+  };
 
-    // Set Auth Cookies if login is successful
-    if (result.code === 200 && result.data?.accessToken && result.data?.refreshToken) {
-      setAuthCookies(res, { accessToken: result.data.accessToken, refreshToken: result.data.refreshToken });
-    }
+  public refresh = async (req: Request, res: Response) => {
+    const rawToken = (req.body?.refreshToken as string | undefined) ?? (req.cookies?.refreshToken as string | undefined);
+    const result = await refreshTokenService(rawToken);
+    setAuthCookies(res, result.tokens);
+    return success(res, { user: result.user }, "Session refreshed");
+  };
 
-    return res.status(result.code).json(result);
-  }
-
-  // Refresh Token Function Controller
-  public refreshToken = async (req: Request, res: Response) => {
-    const refreshToken = req.body?.refreshToken || req.cookies?.refreshToken;
-    const result = await refreshTokenService(refreshToken);
-
-    // Set Auth Cookies if refresh token is successful
-    if (result.code === 200 && result.data?.accessToken && result.data?.refreshToken) {
-      setAuthCookies(res, { accessToken: result.data.accessToken, refreshToken: result.data.refreshToken });
-    }
-
-    return res.status(result.code).json(result);
-  }
-
-  // Logout Function Controller
   public logout = async (req: Request, res: Response) => {
-    const refreshToken = req.body?.refreshToken || req.cookies?.refreshToken;
-    const result = await logoutService(refreshToken);
-    if (result.code === 200) {
-      clearAuthCookies(res);
-    }
-    return res.status(result.code).json(result);
-  }
+    const rawToken = (req.body?.refreshToken as string | undefined) ?? (req.cookies?.refreshToken as string | undefined);
+    await logoutService(rawToken);
+    clearAuthCookies(res);
+    return success(res, { loggedOut: true }, "Signed out");
+  };
 
-  // Get Current User Session
-  public userSession = async (req: Request, res: Response) => {
-    const userId = (req as any).user?.sub;
-    const result = await getUserSessionService(userId);
-    return res.status(result.code).json(result);
+  public session = async (req: Request, res: Response) => {
+    const user = (req as AuthenticatedRequest).user!;
+    const result = await getUserSessionService(user.id);
+    return success(res, result);
+  };
+
+  public acceptInvite = async (req: Request, res: Response) => {
+    const { token, password } = req.body;
+    const result = await acceptInviteService({ token, password });
+    setAuthCookies(res, result.tokens);
+    return success(res, { user: result.user }, "Invitation accepted");
   };
 }

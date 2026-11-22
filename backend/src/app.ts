@@ -1,65 +1,55 @@
-import express, { Request, Response, NextFunction } from "express";
+import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import hpp from "hpp";
 import { ENV } from "@/config/env";
 import routes from "@/routes";
+import { CsrfMiddleware } from "@/middlewares/csrf-middleware";
+import { requestIdMiddleware } from "@/middlewares/request-id-middleware";
+import { requestLoggerMiddleware } from "@/middlewares/request-logger-middleware";
+import { errorHandler, notFoundHandler } from "@/middlewares/error-handler";
 
 const app = express();
+const csrf = new CsrfMiddleware();
 
-// --- Core Middleware ---
+// Render terminates TLS upstream; one proxy hop is trusted for client IPs.
+app.set("trust proxy", 1);
+app.disable("x-powered-by");
+
 app.use(helmet());
-app.use(cors({
-  origin: ENV.FRONTEND_URL,
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || ENV.FRONTEND_ORIGINS.includes(origin.replace(/\/$/, ""))) {
+        callback(null, true);
+        return;
+      }
+      callback(null, false);
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token", "x-request-id"],
+    exposedHeaders: ["x-request-id"],
+  }),
+);
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "100kb" }));
+app.use(express.urlencoded({ extended: false, limit: "100kb" }));
 app.use(cookieParser());
 app.use(hpp());
+app.use(requestIdMiddleware);
+app.use(requestLoggerMiddleware);
 
-// --- Simple Health Check ---
-app.get("/", (req: Request, res: Response) => {
-  res.status(200).json({
-    status: "success",
-    message: `${ENV.APP_NAME} instance is healthy - 3B - New Features!`,
-    timestamp: new Date().toISOString(),
-    environment: ENV.NODE_ENV
-  });
-});
+// All unsafe requests pass through CSRF before reaching a route.
+app.use(csrf.execute);
 
-// --- API Health Check ---
-app.get("/api/health", (_req: Request, res: Response) => {
-  res.status(200).json({
-    status: "success",
-    message: "API is healthy",
-    timestamp: new Date().toISOString()
-  });
-});
+// Keep the old monitor path working without exposing any environment detail.
+app.get("/api/health", (_req, res) => res.redirect(308, "/api/v1/health/live"));
 
-// --- API Routes ---
-app.use("/api", routes);
+app.use("/api/v1", routes);
 
-// --- 404 Handler ---
-app.use((req: Request, res: Response) => {
-  res.status(404).json({
-    status: "error",
-    message: `Cannot ${req.method} ${req.originalUrl}`
-  });
-});
-
-// --- Global Error Handler ---
-app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
-  console.error("🔥 Global Error Hook:", err.message);
-  
-  const statusCode = err.status || 500;
-  res.status(statusCode).json({
-    status: "error",
-    message: ENV.NODE_ENV === "production" ? "Internal Server Error" : err.message,
-    ...(ENV.NODE_ENV !== "production" && { stack: err.stack })
-  });
-});
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 export default app;

@@ -1,29 +1,30 @@
 import bcrypt from "bcrypt";
+import { AppError } from "@/lib/http";
 import { UserRepository } from "@/repositories/user-repository";
+import { recordAudit } from "@/services/audit-service";
+import { issueTokens } from "@/services/auth/token-service";
+import { toSessionUser } from "@/services/auth/types";
 
-export async function signupService(name: string, email: string, password: string) {
-  const userRepository = new UserRepository();
+const userRepository = new UserRepository();
+const BCRYPT_ROUNDS = 12;
 
-  try {
-    // Check if email already exists
-    const existing = await userRepository.findByEmail(email);
-    if (existing) {
-      return { code: 400, status: "error", message: "Email already exists" };
-    }
+export async function signupService(input: { name: string; email: string; password: string }) {
+  const email = input.email.trim().toLowerCase();
+  const existing = await userRepository.findByEmail(email);
+  if (existing) throw new AppError(409, "An account with this email already exists");
 
-    // Insert User Account
-    const createdUser = await userRepository.create({ name, email, password: await bcrypt.hash(password, 10) as string });
+  const passwordHash = await bcrypt.hash(input.password, BCRYPT_ROUNDS);
+  // Public signup is hard-coded to PATIENT; role is never read from the client.
+  const { user } = await userRepository.createPatientAccount({ name: input.name.trim(), email, passwordHash });
+  const tokens = await issueTokens(user);
 
-    // Return success response
-    return {
-      code: 200,
-      status: "success",
-      message: "Created account successfully! Please verify your email.",
-      data: { user: createdUser }
-    };
+  await recordAudit({
+    actorUserId: user.id,
+    actorType: "USER",
+    action: "auth.signup",
+    entityType: "user",
+    entityId: user.id,
+  });
 
-  } catch (error) {
-    console.error("SignupUserService error", error);
-    return { code: 500, status: "error", message: "Unable to create account" };
-  }
+  return { user: toSessionUser(user), tokens };
 }

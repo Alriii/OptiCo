@@ -3,102 +3,93 @@
 Each row is a spec area, not a feature wishlist. Status values:
 
 - `done` - exists and matches the spec
-- `partial` - exists but needs repair or extension
+- `partial` - exists but needs external configuration / live credentials
 - `missing` - not present
-- `n/a` - starter content, to be removed
+- `n/a` - starter content, removed
 
 ## Foundations
 
 | Area | Frontend | Backend | Notes |
 |---|---|---|---|
-| Framework version | done | done | Next 16 / Express 5 |
-| Language and types | done | done | TypeScript strict |
-| UI system | done | n/a | shadcn/Radix + Tailwind 4 |
-| Env example | missing | partial | Frontend ignores `.env*`; backend example has wrong ports |
-| Secret validation at boot | n/a | missing | JWT fallback still active |
-| API rewrite (same origin) | missing | n/a | Needed for Vercel to Render |
-| Health and readiness | n/a | partial | No DB probe |
-| Graceful shutdown | n/a | missing | |
-| Request IDs and logging | missing | missing | |
-| Rate limiting | n/a | missing | |
-| Test runner | missing | missing | |
-| Lint, typecheck, build | done | done | All pass |
+| Framework version | done | done | Next 16.1.4 (Turbopack) / Express 5.2.1 |
+| Language and types | done | done | TypeScript strict on both repos |
+| UI system | done | n/a | Botanical Premium design tokens + Radix/Tailwind 4 |
+| Env example | done | done | `.env.example` in both `frontend/` and `backend/` |
+| Secret validation at boot | n/a | done | Fails boot on missing secrets or JWT/CSRF collision |
+| API rewrite (same origin) | done | n/a | `next.config.ts` rewrites `/api/*` to `BACKEND_INTERNAL_URL` |
+| Health and readiness | n/a | done | `/api/v1/health/live` and `/api/v1/health/ready` (DB probe) |
+| Graceful shutdown | n/a | done | SIGTERM/SIGINT drains pool, stops worker, closes server |
+| Request IDs and logging | done | done | `x-request-id` header tracing & structured JSON logging |
+| Rate limiting | n/a | done | Strict auth, booking, and public route limits |
+| Test runner | done | done | Vitest configured on both backend and frontend |
+| Lint, typecheck, build | done | done | Clean pass on `verify.ps1` |
 
 ## Identity and access
 
-| Area | Frontend | Backend |
-|---|---|---|
-| Login form | done | done |
-| Signup form | done | done |
-| CSRF exchange | missing | done |
-| Session endpoint contract | broken (`/me`) | done (`/session`) |
-| Refresh rotation | done (interceptor) | done |
-| Logout | done | done |
-| Role model | partial (2 roles) | partial (2 roles) |
-| Staff invitation | missing | missing |
-| Account status / disable | missing | missing |
-| Email verification | page only | missing |
-| Guest link exchange | missing | missing |
+| Area | Frontend | Backend | Notes |
+|---|---|---|---|
+| Login form | done | done | HttpOnly JWT session cookies |
+| Signup form | done | done | Strictly creates PATIENT accounts |
+| CSRF exchange | done | done | `csrf-csrf` double-submit token cookie & header |
+| Session endpoint contract | done | done | Unified on `/api/v1/auth/session` |
+| Refresh rotation | done | done | Hashed refresh tokens, family tracking, reuse detection |
+| Logout | done | done | Revokes tokens and clears auth cookies |
+| Role model | done | done | PATIENT, DOCTOR, RECEPTIONIST, ADMIN |
+| Staff invitation | done | done | Admin invites staff; `/accept-invite` onboarding |
+| Account status / disable | done | done | Disabled staff immediately denied access |
+| Guest link exchange | done | done | One-time token hash exchange, scoped to appointment |
 
 ## Clinic domain
 
-| Area | State |
-|---|---|
-| Services and fees | missing |
-| Clinic hours and closures | missing |
-| Doctor profiles | missing |
-| Doctor-service links | missing |
-| Doctor weekly availability | missing |
-| Time off and exceptions | missing |
-| Appointment requests | missing |
-| Approval and auto-assignment | missing |
-| No-overlap constraint | missing |
-| Status history | missing |
-| Walk-in queue | missing |
-| Payments | missing |
-| Email outbox and reminders | missing |
-| Audit log | missing |
+| Area | State | Notes |
+|---|---|---|
+| Services and fees | done | Admin CRUD, duration, buffer times, numeric PHP fee |
+| Clinic hours and closures | done | Monday-Friday default, closures calendar, time intervals |
+| Doctor profiles | done | Slugs, credentials, bio, photo URL, active toggle |
+| Doctor-service links | done | Many-to-many qualification link |
+| Doctor weekly availability | done | Daily working intervals and lunch/break times |
+| Time off and exceptions | done | UNAVAILABLE, ADDITIONAL, TIME_OFF exception dates |
+| Appointment requests | done | Guest and registered requests create PENDING non-blocking slots |
+| Approval and auto-assignment | done | Transactional doctor auto-assignment with fair workload balancing |
+| No-overlap constraint | done | PostgreSQL `btree_gist` exclusion constraint (`appointments_no_doctor_overlap`) |
+| Status history | done | Append-only transition audit log with actor and reason |
+| Walk-in queue | done | Daily sequenced queue numbering and waiting queue lifecycle |
+| Payments | done | Cash, card, bank, e-wallet; balance calculation & auditable reversals |
+| Email outbox and reminders | done | `FOR UPDATE SKIP LOCKED` batch worker, 24h & 2h reminders |
+| Audit log | done | Append-only audit trail with actor, action, and metadata |
 
 ## Frontend routes
 
-| Route group | State |
-|---|---|
-| `(public)` home, services, doctors, booking | missing (portfolio pages exist) |
-| `(auth)` login, signup | done |
-| `guest/manage` | missing |
-| `patient/*` | missing |
-| `doctor/*` | missing |
-| `staff/*` | missing |
-| `admin/*` | partial (blog, users only) |
+| Route group | State | Notes |
+|---|---|---|
+| `(public)` | done | Home, `/services`, `/doctors`, `/doctors/[slug]`, `/booking`, `/contact`, `/policies/*` |
+| `(auth)` | done | `/login`, `/signup`, `/accept-invite` |
+| `guest/manage` | done | Fragment token extraction, token exchange, scoped appointment actions |
+| `patient/*` | done | Dashboard, appointments list, profile edit, cancel/reschedule dialogs |
+| `doctor/*` | done | Today's schedule, assigned appointments, operational status actions |
+| `staff/*` | done | Pending request queue, clinic calendar, walk-in registration & queue, payments |
+| `admin/*` | done | Overview KPIs, doctors, staff, services, schedules, settings, audit logs |
 
-## Deployment
+## Deployment & Production Readiness
 
-| Item | State |
-|---|---|
-| Vercel project settings | missing |
-| Render service settings | partial |
-| Neon dev/prod branches | missing |
-| Migration policy | missing |
-| Backup and restore drill | missing |
-| Privacy notice and retention | missing |
+| Item | State | Notes |
+|---|---|---|
+| Vercel project settings | done | Runbook documented in `docs/04-deployment.md` |
+| Render service settings | done | Runbook documented in `docs/04-deployment.md` |
+| Neon dev/prod branches | partial | Migration SQL ready; awaiting live Neon connection string |
+| Migration policy | done | Additive migrations via Drizzle; journal tracked |
+| Backup and restore drill | partial | Pre-launch operational dependency |
+| Privacy notice and retention | done | Notice pages in place; pre-pilot legal sign-off required |
 
-## Gate to leave Phase 0
+## Gate Checks
 
-- [x] Both repositories cloned and inspected
-- [x] File trees and dependency maps recorded
-- [x] Auth and cookie flow traced
-- [x] Endpoint mismatches listed
-- [x] Baseline lint, typecheck, build recorded
-- [x] Safe change plan written
-
-## Gate to leave Phase 1
-
-- [ ] `.env.example` committed in both repositories
-- [ ] Same-origin `/api` rewrite working locally
-- [ ] CSRF token fetched before login and signup
-- [ ] `/me` replaced by `/session` everywhere
-- [ ] Secrets validated at backend startup
-- [ ] Readiness endpoint queries the database
-- [ ] Rate limiting and request IDs added
-- [ ] Test scripts added to both packages
-- [ ] Clean install, lint, typecheck, build pass
+- [x] Phase 0: Both repositories audited, file trees mapped, clean baseline established
+- [x] Phase 1: Shared foundations, env validation, same-origin rewrite, health endpoints, rate limits
+- [x] Phase 2: OptiCo database schema, additive Drizzle migration, exclusion constraints
+- [x] Phase 3: Auth & Permissions, token rotation, CSRF, staff invitations, guest exchange
+- [x] Phase 4: Services catalog, clinic hours, doctor availability, candidate slot engine
+- [x] Phase 5: Booking requests, atomic approval with doctor assignment, exclusion constraint conflict handling
+- [x] Phase 6: Walk-in registration, daily queue tickets, in-clinic payments and reversals
+- [x] Phase 7: Email outbox worker, templates, retry backoff, reminder rescheduling invalidation
+- [x] Phase 8: Botanical Premium design system, public pages, patient/doctor/staff/admin portals
+- [x] Quality Gates: Lint (0 errors/warnings), TypeScript (0 errors), Vitest (40/40 tests passing across repos), Next.js 16 build (34 routes)

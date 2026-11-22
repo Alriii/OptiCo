@@ -1,40 +1,33 @@
 import bcrypt from "bcrypt";
+import { AppError } from "@/lib/http";
 import { UserRepository } from "@/repositories/user-repository";
-import { TokenRepository } from "@/repositories/token-repository";
-import { signAccessToken, signRefreshToken, TokenExpiry } from "@/lib/jwt";
+import { recordAudit } from "@/services/audit-service";
+import { issueTokens } from "@/services/auth/token-service";
+import { toSessionUser } from "@/services/auth/types";
 
-export async function loginService(email: string, password: string) {
-  const userRepository = new UserRepository();
-  const tokenRepository = new TokenRepository();
+const userRepository = new UserRepository();
+// Equalize the failed-login path so account existence is not measurable by timing.
+const DUMMY_HASH = bcrypt.hashSync("optico-timing-equalizer", 10);
 
-  try {
-    // Validate User Credentials
-    const user = await userRepository.findByEmail(email);
-    if (!user || !user.password || !(await bcrypt.compare(password, user.password))) {
-      return { code: 400, status: "error", message: "Invalid credentials" };
-    }
+export async function loginService(input: { email: string; password: string }) {
+  const user = await userRepository.findByEmail(input.email.trim().toLowerCase());
+  const valid = await bcrypt.compare(input.password, user?.passwordHash ?? DUMMY_HASH);
 
-    // Generate Access & RefreshTokens
-    const accessToken = signAccessToken(user.id, user.role, TokenExpiry.ACCESS_TOKEN_EXPIRES);
-    const refreshToken = signRefreshToken(user.id, user.role, TokenExpiry.REFRESH_TOKEN_EXPIRES);
-
-    // Save Refresh Token to DB for tracking/rotation
-    await tokenRepository.createRefreshToken({
-      userId: user.id,
-      token: refreshToken,
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-    });
-
-    // Return success response
-    return {
-      code: 200,
-      status: "success",
-      message: "Successfully logged in",
-      data: { accessToken, refreshToken }
-    };
-
-  } catch (error) {
-    console.error("LoginCredentialService Error", error);
-    return { code: 500, status: "error", message: "Failed to login account" };
+  // One generic error for unknown, wrong-password, invited, and disabled accounts.
+  if (!user || !user.passwordHash || !valid || user.status !== "ACTIVE") {
+    throw new AppError(401, "Invalid email or password");
   }
+
+  await userRepository.updateLastLogin(user.id);
+  const tokens = await issueTokens(user);
+
+  await recordAudit({
+    actorUserId: user.id,
+    actorType: "USER",
+    action: "auth.login",
+    entityType: "user",
+    entityId: user.id,
+  });
+
+  return { user: toSessionUser(user), tokens };
 }

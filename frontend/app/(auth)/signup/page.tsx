@@ -1,9 +1,9 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { SignupForm } from "@/components/features/auth/SignupForm";
 
 export const metadata: Metadata = {
-  title: "Sign Up",
-  description: "Create an account to join our community and stay updated with the latest projects and blog posts.",
+  title: "Create an account",
+  description: "Create an OptiCo patient account.",
 };
 
 export default function SignupPage() {

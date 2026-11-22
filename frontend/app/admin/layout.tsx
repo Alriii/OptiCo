@@ -1,23 +1,14 @@
-import { Metadata } from "next";
-import { AdminLayoutClient } from "./AdminLayoutClient";
 import { AuthGuard } from "@/components/features/auth/AuthGuard";
+import { PortalShell } from "@/components/shared/portal-shell";
 
-export const metadata: Metadata = {
-  robots: {
-    index: false,
-    follow: false,
-    nocache: true,
-    googleBot: {
-      index: false,
-      follow: false,
-    },
-  },
-};
-
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <AuthGuard mode="ADMIN">
-      <AdminLayoutClient>{children}</AdminLayoutClient>
+    <AuthGuard roles={["ADMIN"]}>
+      <PortalShell role="ADMIN">{children}</PortalShell>
     </AuthGuard>
   );
 }

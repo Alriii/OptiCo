@@ -1,52 +1,90 @@
-import axiosInstance from "@/lib/axios";
 import { z } from "zod";
+import api, { clearCsrfToken, refreshCsrfToken } from "@/lib/axios";
+import type { ApiEnvelope, AuthUser } from "./types";
 
-// Input types aligned with backend schemas
 export const loginSchema = z.object({
-  email: z.string().email("Invalid email format"),
-  password: z.string().min(1, "Password is required"),
+  email: z.string().trim().email("Enter a valid email address."),
+  password: z.string().min(1, "Password is required."),
 });
 
 export const signupSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email format"),
-  password: z.string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Must contain one uppercase letter")
-    .regex(/[0-9]/, "Must contain one number"),
+  name: z.string().trim().min(2, "Enter your full name."),
+  email: z.string().trim().email("Enter a valid email address."),
+  password: z
+    .string()
+    .min(8, "Use at least 8 characters.")
+    .regex(/[A-Z]/, "Include at least one uppercase letter.")
+    .regex(/[0-9]/, "Include at least one number."),
+});
+
+export const acceptInviteSchema = z.object({
+  token: z.string().min(1, "Invitation token is required."),
+  password: z
+    .string()
+    .min(8, "Use at least 8 characters.")
+    .regex(/[A-Z]/, "Include at least one uppercase letter.")
+    .regex(/[0-9]/, "Include at least one number."),
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;
 export type SignupInput = z.infer<typeof signupSchema>;
+export type AcceptInviteInput = z.infer<typeof acceptInviteSchema>;
 
 export const authService = {
-  login: async (data: LoginInput) => {
-    const response = await axiosInstance.post("/api/auth/v1/login", data);
+  async getCsrfToken(): Promise<ApiEnvelope<{ csrfToken: string }>> {
+    const response = await api.get<ApiEnvelope<{ csrfToken: string }>>(
+      "/auth/csrf-token",
+    );
     return response.data;
   },
 
-  signup: async (data: SignupInput) => {
-    const response = await axiosInstance.post("/api/auth/v1/signup", data);
+  async login(input: LoginInput): Promise<ApiEnvelope<{ user?: AuthUser }>> {
+    const response = await api.post<ApiEnvelope<{ user?: AuthUser }>>(
+      "/auth/login",
+      input,
+    );
+    // The refresh cookie and CSRF pair rotate on login.
+    await refreshCsrfToken();
     return response.data;
   },
 
-  logout: async () => {
-    const response = await axiosInstance.post("/api/auth/v1/logout");
+  async signup(input: SignupInput): Promise<ApiEnvelope<{ user?: AuthUser }>> {
+    const response = await api.post<ApiEnvelope<{ user?: AuthUser }>>(
+      "/auth/signup",
+      input,
+    );
     return response.data;
   },
 
-  refreshToken: async () => {
-    const response = await axiosInstance.post("/api/auth/v1/refresh-token");
+  async logout(): Promise<ApiEnvelope<null>> {
+    const response = await api.post<ApiEnvelope<null>>("/auth/logout");
+    clearCsrfToken();
+    await refreshCsrfToken();
     return response.data;
   },
 
-  verifyEmail: async (token: string) => {
-    const response = await axiosInstance.get(`/api/auth/v1/verify-email?token=${token}`);
+  async refresh(): Promise<ApiEnvelope<{ user?: AuthUser }>> {
+    const response = await api.post<ApiEnvelope<{ user?: AuthUser }>>(
+      "/auth/refresh",
+    );
     return response.data;
   },
 
-  getMe: async () => {
-    const response = await axiosInstance.get("/api/auth/v1/me");
+  async session(): Promise<ApiEnvelope<{ user: AuthUser }>> {
+    const response = await api.get<ApiEnvelope<{ user: AuthUser }>>(
+      "/auth/session",
+    );
+    return response.data;
+  },
+
+  async acceptInvite(
+    input: AcceptInviteInput,
+  ): Promise<ApiEnvelope<{ user?: AuthUser }>> {
+    const response = await api.post<ApiEnvelope<{ user?: AuthUser }>>(
+      "/auth/accept-invite",
+      input,
+    );
+    await refreshCsrfToken();
     return response.data;
   },
 };

@@ -1,75 +1,74 @@
-import jwt, { SignOptions } from "jsonwebtoken";
+import jwt, { type SignOptions } from "jsonwebtoken";
 import { randomUUID } from "node:crypto";
 import { ENV } from "@/config/env";
+import type { UserRole } from "@/db/schema";
 
-export type JwtPayload = { 
+const ISSUER = "optico-api";
+const AUDIENCE = "optico-web";
+const ALGORITHM = "HS256" as const;
+
+export type AccessPayload = {
   sub: string;
-  role: string;
-  type: "access" | "refresh" 
+  role: UserRole;
+  type: "access";
 };
 
-const jwtSecret = ENV.JWT_SECRET;
+export type RefreshPayload = {
+  sub: string;
+  type: "refresh";
+  familyId: string;
+};
 
-export enum TokenExpiry {
-  ACCESS_TOKEN_EXPIRES = "15m",
-  REFRESH_TOKEN_EXPIRES = "7d",
+export type GuestPayload = {
+  sub: string;
+  type: "guest";
+  appointmentId: string;
+};
+
+const baseOptions: SignOptions = {
+  algorithm: ALGORITHM,
+  issuer: ISSUER,
+  audience: AUDIENCE,
+};
+
+export function signAccessToken(userId: string, role: UserRole): string {
+  return jwt.sign({ sub: userId, role, type: "access" }, ENV.JWT_SECRET, {
+    ...baseOptions,
+    expiresIn: ENV.ACCESS_TOKEN_TTL_SECONDS,
+    jwtid: randomUUID(),
+  });
 }
 
-export function signAccessToken(userId: string, role: string, duration: SignOptions["expiresIn"]) {
-  const payload: JwtPayload = { sub: userId, role, type: "access" };
-  return jwt.sign(payload, jwtSecret, { expiresIn: duration, jwtid: randomUUID() });
+export function signRefreshToken(userId: string, familyId: string): string {
+  return jwt.sign({ sub: userId, type: "refresh", familyId }, ENV.JWT_SECRET, {
+    ...baseOptions,
+    expiresIn: ENV.REFRESH_TOKEN_TTL_SECONDS,
+    jwtid: randomUUID(),
+  });
 }
 
-export function signRefreshToken(userId: string, role: string, duration: SignOptions["expiresIn"]) {
-  const payload: JwtPayload = { sub: userId, role, type: "refresh" };
-  return jwt.sign(payload, jwtSecret, { expiresIn: duration, jwtid: randomUUID() });
+export function signGuestToken(appointmentId: string): string {
+  return jwt.sign({ sub: appointmentId, type: "guest", appointmentId }, ENV.JWT_SECRET, {
+    ...baseOptions,
+    expiresIn: 30 * 60,
+    jwtid: randomUUID(),
+  });
 }
 
-export function verifyAccessToken(token: string): JwtPayload | null {
+function verify<T extends { type: string }>(token: string | undefined, type: T["type"]): T | null {
+  if (!token) return null;
   try {
-    const payload = jwt.verify(token, jwtSecret) as JwtPayload;
-    return payload.type === "access" ? payload : null;
+    const payload = jwt.verify(token, ENV.JWT_SECRET, {
+      algorithms: [ALGORITHM],
+      issuer: ISSUER,
+      audience: AUDIENCE,
+    }) as T;
+    return payload.type === type ? payload : null;
   } catch {
     return null;
   }
 }
 
-export function verifyRefreshToken(token: string): JwtPayload | null {
-  try {
-    const payload = jwt.verify(token, jwtSecret) as JwtPayload;
-    return payload.type === "refresh" ? payload : null;
-  } catch {
-    return null;
-  }
-}
-
-export function toMilliseconds(duration?: string | number) {
-  if (duration === undefined) {
-    return undefined;
-  }
-
-  if (typeof duration === "number") {
-    return duration * 1000;
-  }
-
-  const match = /^(\d+)([smhd])$/.exec(duration);
-  if (!match) {
-    return undefined;
-  }
-
-  const value = Number(match[1]);
-  const unit = match[2];
-
-  switch (unit) {
-    case "s":
-      return value * 1000;
-    case "m":
-      return value * 60 * 1000;
-    case "h":
-      return value * 60 * 60 * 1000;
-    case "d":
-      return value * 24 * 60 * 60 * 1000;
-    default:
-      return undefined;
-  }
-}
+export const verifyAccessToken = (token?: string) => verify<AccessPayload>(token, "access");
+export const verifyRefreshToken = (token?: string) => verify<RefreshPayload>(token, "refresh");
+export const verifyGuestToken = (token?: string) => verify<GuestPayload>(token, "guest");

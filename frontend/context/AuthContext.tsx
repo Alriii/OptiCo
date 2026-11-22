@@ -1,141 +1,154 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { authService, LoginInput, SignupInput } from "@/services/auth.service";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { authService, type LoginInput, type SignupInput } from "@/services/auth.service";
+import type { AuthUser } from "@/services/types";
+import { portalPathForRole, hasRole as roleMatches } from "@/lib/auth-redirect";
+import { getApiError } from "@/lib/api-error";
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-}
-
-interface AuthContextType {
-  user: User | null;
+interface AuthContextValue {
+  user: AuthUser | null;
   isLoading: boolean;
-  login: (data: LoginInput) => Promise<void>;
-  signup: (data: SignupInput) => Promise<void>;
-  logout: () => Promise<void>;
   isAuthenticated: boolean;
-  isAdmin: boolean;
+  login: (input: LoginInput) => Promise<AuthUser>;
+  signup: (input: SignupInput) => Promise<AuthUser | null>;
+  logout: () => Promise<void>;
+  hasRole: (roles: readonly string[]) => boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const initializeAuth = async () => {
-      const savedUser = localStorage.getItem("user");
-      if (savedUser) {
-        try {
-          // Hydrate state from localStorage
-          const parsedUser = JSON.parse(savedUser);
-          setUser(parsedUser);
+    let cancelled = false;
 
-          // Verify session with backend
-          const response = await authService.getMe();
-          if (response.code !== 200) {
-            throw new Error("Session invalid");
-          }
-          // Update user data with latest from server
-          setUser(response.data.user);
-          localStorage.setItem("user", JSON.stringify(response.data.user));
-        } catch (e: any) {
-          console.error("Session verification failed", e);
+    authService
+      .session()
+      .then((response) => {
+        if (!cancelled) setUser(response.data?.user ?? null);
+      })
+      .catch(() => {
+        // A missing session is normal on public pages.
+        if (!cancelled) setUser(null);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
 
-          // Only clear session if it's a definitive auth failure (401/403)
-          const status = e.response?.status;
-          if (status === 401 || status === 403) {
-            setUser(null);
-            localStorage.removeItem("user");
-          }
-          console.log("[AuthContext]]", e)
-        }
-      }
-      setIsLoading(false);
+    return () => {
+      cancelled = true;
     };
-
-    initializeAuth();
   }, []);
 
-  const login = async (data: LoginInput) => {
-    try {
-      const response = await authService.login(data);
-      if (response.code === 200) {
-        const userData = response.data.user;
-        setUser(userData);
-        localStorage.setItem("user", JSON.stringify(userData));
+  useEffect(() => {
+    const handleUnauthorized = () => setUser(null);
+    window.addEventListener("optico:unauthorized", handleUnauthorized);
+    return () =>
+      window.removeEventListener("optico:unauthorized", handleUnauthorized);
+  }, []);
 
-        // Role-based redirection
-        if (userData.role === "ADMIN") {
-          router.push("/admin");
-        } else {
-          router.push("/");
+  const login = useCallback(
+    async (input: LoginInput) => {
+      const response = await authService.login(input);
+      let nextUser = response.data?.user ?? null;
+
+      // Some deployments return only cookies; ask for the session in that case.
+      if (!nextUser) {
+        const session = await authService.session();
+        nextUser = session.data?.user ?? null;
+      }
+
+      if (!nextUser) {
+        throw new Error("Login succeeded but the session could not be loaded.");
+      }
+
+      setUser(nextUser);
+      router.replace(portalPathForRole(nextUser.role));
+      return nextUser;
+    },
+    [router],
+  );
+
+  const signup = useCallback(
+    async (input: SignupInput) => {
+      await authService.signup(input);
+
+      try {
+        const response = await authService.login({
+          email: input.email,
+          password: input.password,
+        });
+        let nextUser = response.data?.user ?? null;
+
+        if (!nextUser) {
+          const session = await authService.session();
+          nextUser = session.data?.user ?? null;
         }
-      } else {
-        toast.error(response.message || "Login failed");
-      }
-    } catch (error: any) {
-      const message = error.response?.data?.message || "An unexpected error occurred";
-      toast.error(message);
-      throw error;
-    }
-  };
 
-  const signup = async (data: SignupInput) => {
-    try {
-      const response = await authService.signup(data);
-      if (response.code === 201 || response.code === 200) {
-        router.push("/login");
-      } else {
-        toast.error(response.message || "Signup failed");
+        if (nextUser) {
+          setUser(nextUser);
+          router.replace(portalPathForRole(nextUser.role));
+          return nextUser;
+        }
+      } catch {
+        // Account creation is still valid; ask the patient to sign in.
+        toast.info("Account created. Please sign in to continue.");
       }
-    } catch (error: any) {
-      const message = error.response?.data?.message || "An unexpected error occurred";
-      toast.error(message);
-      throw error;
-    }
-  };
 
-  const logout = async () => {
+      router.replace("/login?registered=1");
+      return null;
+    },
+    [router],
+  );
+
+  const logout = useCallback(async () => {
     try {
       await authService.logout();
     } catch (error) {
-      console.error("Logout error", error);
+      toast.error(getApiError(error, "Could not close the session cleanly."));
     } finally {
       setUser(null);
-      localStorage.removeItem("user");
-      toast.success("Logged out successfully");
-      router.push("/login");
+      router.replace("/login");
     }
-  };
+  }, [router]);
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isLoading,
-        login,
-        signup,
-        logout,
-        isAuthenticated: !!user,
-        isAdmin: user?.role?.toUpperCase() === "ADMIN",
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+  const hasRole = useCallback(
+    (roles: readonly string[]) => roleMatches(user?.role, roles),
+    [user?.role],
   );
+
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      user,
+      isLoading,
+      isAuthenticated: Boolean(user),
+      login,
+      signup,
+      logout,
+      hasRole,
+    }),
+    [user, isLoading, login, signup, logout, hasRole],
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;

@@ -1,24 +1,28 @@
 {
-  "name": "appsdev-api-tutorial",
+  "name": "optico-api",
   "version": "1.0.0",
-  "description": "",
+  "description": "OptiCo optical clinic appointment and operations API",
   "main": "dist/server.mjs",
-  "directories": {
-    "doc": "docs"
+  "type": "module",
+  "engines": {
+    "node": ">=20"
   },
   "scripts": {
     "build": "tsdown src/server.ts --format esm --clean --minify",
     "dev": "tsx watch src/server.ts",
     "start": "node dist/server.mjs",
+    "typecheck": "tsc --noEmit",
     "db:plan": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "db:seed": "tsx src/db/seed.ts",
     "db:studio": "drizzle-kit studio",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
@@ -27,6 +31,7 @@
     "dotenv": "^18.0.0",
     "drizzle-orm": "^0.45.4",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.2.1",
     "helmet": "^8.3.0",
     "hpp": "^0.2.3",
     "jsonwebtoken": "^9.0.3",
@@ -45,14 +50,17 @@
     "@types/node": "^26.6.1",
     "@types/nodemailer": "^8.0.2",
     "@types/pg": "^8.23.1",
+    "@types/supertest": "^6.0.3",
     "@typescript-eslint/eslint-plugin": "^8.70.0",
     "@typescript-eslint/parser": "^8.70.0",
     "drizzle-kit": "^0.31.11",
     "eslint": "^10.10.0",
     "jiti": "^2.7.0",
+    "supertest": "^7.1.4",
     "tsdown": "^0.23.0",
     "tsx": "^4.23.13",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.70.0"
+    "typescript-eslint": "^8.70.0",
+    "vitest": "^4.0.14"
   }
 }
