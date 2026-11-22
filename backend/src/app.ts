@@ -44,6 +44,21 @@ app.use(requestLoggerMiddleware);
 // All unsafe requests pass through CSRF before reaching a route.
 app.use(csrf.execute);
 
+// Root status endpoint for browser checks and platform uptime monitors.
+app.get("/", (_req, res) => {
+  res.status(200).json({
+    status: "success",
+    service: "OptiCo API",
+    version: "1.0.0",
+    message: "OptiCo Optical Clinic API is live and operational",
+    endpoints: {
+      health: "/api/v1/health/live",
+      ready: "/api/v1/health/ready",
+      services: "/api/v1/public/services",
+    },
+  });
+});
+
 // Keep the old monitor path working without exposing any environment detail.
 app.get("/api/health", (_req, res) => res.redirect(308, "/api/v1/health/live"));
 
