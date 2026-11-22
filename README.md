@@ -25,6 +25,7 @@ docs/       audit, contract, decisions, phase log
 - [Deployment](docs/04-deployment.md) - Vercel, Render, Neon, email setup.
 - [Security](docs/05-security.md) - access, sessions, guest links, privacy baseline.
 - [Acceptance](docs/06-acceptance.md) - automated and manual release checks.
+- [Decisions](docs/07-decisions.md) - why the repo and key behaviours look this way.
 
 ## Status
 
