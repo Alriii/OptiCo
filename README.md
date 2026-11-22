@@ -22,6 +22,9 @@ docs/       audit, contract, decisions, phase log
 - [Readiness checklist](docs/01-readiness-checklist.md) - spec areas mapped to progress.
 - [Phase log](docs/02-phase-log.md) - checkpoint history.
 - [API contract](docs/03-api-contract.md) - endpoints, roles, envelopes, time rules.
+- [Deployment](docs/04-deployment.md) - Vercel, Render, Neon, email setup.
+- [Security](docs/05-security.md) - access, sessions, guest links, privacy baseline.
+- [Acceptance](docs/06-acceptance.md) - automated and manual release checks.
 
 ## Status
 
