@@ -22,10 +22,12 @@ export function PublicNav() {
   return (
     <header className="sticky top-0 z-40 border-b border-border/80 bg-background/90 backdrop-blur">
       <div className="page-shell flex h-16 items-center justify-between gap-4">
-        <Link href="/" className="flex items-center gap-2" aria-label="OptiCo home">
-          <span className="flex size-9 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-            O
-          </span>
+        <Link href="/" className="flex items-center gap-2.5" aria-label="OptiCo home">
+          <img
+            src="/mascot.jpg"
+            alt="OptiCo Mascot"
+            className="size-9 rounded-full object-cover ring-2 ring-primary/20 shadow-xs"
+          />
           <span className="flex flex-col leading-none">
             <span className="text-base font-semibold tracking-tight">OptiCo</span>
             <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">

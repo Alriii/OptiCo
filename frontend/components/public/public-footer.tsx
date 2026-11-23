@@ -11,8 +11,15 @@ export function PublicFooter() {
   return (
     <footer className="mt-16 border-t bg-secondary/60">
       <div className="page-shell grid gap-8 py-10 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="space-y-2">
-          <p className="text-lg font-semibold">OptiCo</p>
+        <div className="space-y-3">
+          <div className="flex items-center gap-2.5">
+            <img
+              src="/mascot.jpg"
+              alt="OptiCo Mascot"
+              className="size-8 rounded-full object-cover ring-1 ring-border shadow-xs"
+            />
+            <p className="text-lg font-semibold tracking-tight">OptiCo</p>
+          </div>
           <p className="text-sm leading-relaxed text-muted-foreground">
             Appointment requests and clinic operations for a calmer optical
             care visit.

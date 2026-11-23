@@ -68,10 +68,12 @@ export function PortalShell({ role, children }: PortalShellProps) {
     <div className="min-h-screen bg-secondary/40 lg:grid lg:grid-cols-[16rem_1fr]">
       <aside className="border-b bg-sidebar text-sidebar-foreground lg:min-h-screen lg:border-r lg:border-sidebar-border">
         <div className="flex items-center justify-between gap-3 px-5 py-4 lg:flex-col lg:items-start lg:gap-6 lg:py-6">
-          <Link href={portal} className="flex items-center gap-2">
-            <span className="flex size-9 items-center justify-center rounded-full bg-sidebar-primary text-sm font-semibold text-sidebar-primary-foreground">
-              O
-            </span>
+          <Link href={portal} className="flex items-center gap-2.5">
+            <img
+              src="/mascot.jpg"
+              alt="OptiCo Mascot"
+              className="size-9 rounded-full object-cover ring-2 ring-sidebar-foreground/20 shadow-xs"
+            />
             <span className="flex flex-col leading-none">
               <span className="text-base font-semibold">OptiCo</span>
               <span className="text-[11px] uppercase tracking-[0.16em] text-sidebar-foreground/70">
