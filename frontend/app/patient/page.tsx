@@ -62,7 +62,7 @@ export default function PatientDashboardPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Patient portal"
+        eyebrow="Overview"
         title={`Hello${user?.name ? `, ${user.name.split(" ")[0]}` : ""}`}
         description="Your requests, confirmed visits, and appointment references in one place."
         actions={
@@ -152,12 +152,7 @@ export default function PatientDashboardPage() {
               <EmptyState
                 icon={CalendarCheck}
                 title="No upcoming appointments"
-                description="Send a request and the clinic will review it. A pending request does not reserve a slot."
-                action={
-                  <Button asChild>
-                    <Link href="/booking">Request an appointment</Link>
-                  </Button>
-                }
+                description="You don't have any pending requests or scheduled visits. Use the Request appointment button above to book your next consultation."
               />
             ) : (
               <div className="grid gap-3">
@@ -169,14 +164,6 @@ export default function PatientDashboardPage() {
                 ))}
               </div>
             )}
-          </section>
-
-          <section className="rounded-xl border bg-secondary/40 px-4 py-4 text-sm text-muted-foreground">
-            <p>
-              <strong className="font-medium text-foreground">Reminder:</strong>{" "}
-              online booking is a request. The clinic confirms the schedule
-              after assigning an available doctor.
-            </p>
           </section>
         </>
       )}

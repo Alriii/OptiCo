@@ -56,7 +56,7 @@ export default function PatientAppointmentsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Appointments"
+        eyebrow="Records"
         title="Your appointment record"
         description="Pending requests, confirmed visits, and past appointments. Cancellation and rescheduling are requests until clinic staff confirm them."
         actions={
@@ -88,12 +88,7 @@ export default function PatientAppointmentsPage() {
       ) : appointments.length === 0 ? (
         <EmptyState
           title="No appointments yet"
-          description="When you send a request it will appear here with a booking reference and status."
-          action={
-            <Button asChild>
-              <Link href="/booking">Request an appointment</Link>
-            </Button>
-          }
+          description="You don't have any recorded appointments yet. Use the New request button above to book your visit."
         />
       ) : (
         <>

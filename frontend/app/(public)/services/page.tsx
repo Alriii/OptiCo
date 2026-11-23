@@ -1,8 +1,5 @@
-import Link from "next/link";
-import { CalendarCheck } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { ServicesDirectory } from "@/components/public/services-directory";
-import { Button } from "@/components/ui/button";
 
 export default function ServicesPage() {
   return (
@@ -10,14 +7,7 @@ export default function ServicesPage() {
       <PageHeader
         eyebrow="Clinic services"
         title="Eye care, clearly explained"
-        description="Choose the service that fits your concern. The clinic reviews every request and assigns an available doctor at approval."
-        actions={
-          <Button asChild>
-            <Link href="/booking">
-              <CalendarCheck className="size-4" /> Request an appointment
-            </Link>
-          </Button>
-        }
+        description="Choose the service that fits your concern. Select any service below to proceed with your booking."
       />
       <ServicesDirectory />
     </div>

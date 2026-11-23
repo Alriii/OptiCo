@@ -66,73 +66,99 @@ export function PortalShell({ role, children }: PortalShellProps) {
 
   return (
     <div className="min-h-screen bg-secondary/40 lg:grid lg:grid-cols-[16rem_1fr]">
-      <aside className="border-b bg-sidebar text-sidebar-foreground lg:min-h-screen lg:border-r lg:border-sidebar-border">
-        <div className="flex items-center justify-between gap-3 px-5 py-4 lg:flex-col lg:items-start lg:gap-6 lg:py-6">
-          <Link href={portal} className="flex items-center gap-2.5">
-            <img
-              src="/mascot.jpg"
-              alt="OptiCo Mascot"
-              className="size-9 rounded-full object-cover ring-2 ring-sidebar-foreground/20 shadow-xs"
-            />
-            <span className="flex flex-col leading-none">
-              <span className="text-base font-semibold">OptiCo</span>
-              <span className="text-[11px] uppercase tracking-[0.16em] text-sidebar-foreground/70">
-                {ROLE_LABELS[role]} portal
+      <aside className="border-b bg-sidebar text-sidebar-foreground lg:flex lg:flex-col lg:justify-between lg:min-h-screen lg:border-r lg:border-sidebar-border">
+        <div>
+          <div className="flex items-center justify-between gap-3 px-5 py-4 lg:py-6">
+            <Link href={portal} className="flex items-center gap-2.5">
+              <img
+                src="/mascot.jpg"
+                alt="OptiCo Mascot"
+                className="size-9 rounded-full object-cover ring-2 ring-sidebar-foreground/20 shadow-xs"
+              />
+              <span className="flex flex-col leading-none">
+                <span className="text-base font-semibold">OptiCo</span>
+                <span className="text-[11px] uppercase tracking-[0.16em] text-sidebar-foreground/70">
+                  {ROLE_LABELS[role]} portal
+                </span>
               </span>
-            </span>
-          </Link>
+            </Link>
 
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={logout}
-            className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={logout}
+              className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground lg:hidden"
+            >
+              <LogOut className="size-4" aria-hidden="true" />
+              <span className="hidden sm:inline">Sign out</span>
+            </Button>
+          </div>
+
+          <nav
+            aria-label={`${ROLE_LABELS[role]} navigation`}
+            className="flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-col lg:overflow-visible lg:px-3"
           >
-            <LogOut className="size-4" aria-hidden="true" />
-            <span className="hidden sm:inline">Sign out</span>
-          </Button>
+            {nav.map((item) => {
+              const active =
+                pathname === item.href ||
+                (item.href !== portal && pathname.startsWith(`${item.href}/`));
+              const Icon = item.icon;
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "flex shrink-0 items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors",
+                    active
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                      : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
+                  )}
+                >
+                  <Icon className="size-4" aria-hidden="true" />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
         </div>
 
-        <nav
-          aria-label={`${ROLE_LABELS[role]} navigation`}
-          className="flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-col lg:overflow-visible lg:px-3"
-        >
-          {nav.map((item) => {
-            const active =
-              pathname === item.href ||
-              (item.href !== portal && pathname.startsWith(`${item.href}/`));
-            const Icon = item.icon;
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "flex shrink-0 items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors",
-                  active
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
-                )}
+        <div className="hidden px-5 py-5 lg:block">
+          <div className="rounded-2xl border border-sidebar-border/70 bg-sidebar-accent/40 p-3.5 text-xs">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="font-medium truncate">{user?.name ?? "Signed in"}</p>
+                <p className="truncate text-sidebar-foreground/70">{user?.email}</p>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={logout}
+                title="Sign out"
+                className="size-7 shrink-0 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
               >
-                <Icon className="size-4" aria-hidden="true" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="hidden px-5 py-4 lg:block">
-          <div className="rounded-lg border border-sidebar-border/70 bg-sidebar-accent/40 p-3 text-xs">
-            <p className="font-medium">{user?.name ?? "Signed in"}</p>
-            <p className="truncate text-sidebar-foreground/70">{user?.email}</p>
-            <Badge
-              variant="outline"
-              className="mt-2 border-sidebar-border text-sidebar-foreground"
-            >
-              {ROLE_LABELS[role]}
-            </Badge>
+                <LogOut className="size-3.5" aria-hidden="true" />
+                <span className="sr-only">Sign out</span>
+              </Button>
+            </div>
+            <div className="mt-2.5 flex items-center justify-between border-t border-sidebar-border/40 pt-2">
+              <Badge
+                variant="outline"
+                className="border-sidebar-border text-sidebar-foreground text-[10px]"
+              >
+                {ROLE_LABELS[role]}
+              </Badge>
+              <button
+                type="button"
+                onClick={logout}
+                className="text-[11px] text-sidebar-foreground/70 hover:text-sidebar-foreground hover:underline transition-colors"
+              >
+                Sign out
+              </button>
+            </div>
           </div>
           <p className="mt-3 text-[11px] leading-relaxed text-sidebar-foreground/60">
             Demo clinic workspace. Sample data only.
