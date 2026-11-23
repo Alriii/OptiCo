@@ -1,4 +1,4 @@
-﻿import type { Request, Response } from "express";
+import type { Request, Response } from "express";
 import { routeParam, success } from "@/lib/http";
 import type { AppointmentStatus } from "@/db/schema";
 import type { AuthenticatedRequest } from "@/middlewares/auth-middleware";
@@ -22,11 +22,6 @@ import {
   registerWalkInService,
   startWalkInService,
 } from "@/services/walkin-service";
-import {
-  listPaymentsService,
-  recordPaymentService,
-  reversePaymentService,
-} from "@/services/payment-service";
 
 function pagination(req: Request) {
   return { page: Number(req.query.page ?? 1), limit: Number(req.query.limit ?? 20) };
@@ -125,31 +120,5 @@ export class StaffController {
   public cancelWalkIn = async (req: Request, res: Response) => {
     const user = (req as AuthenticatedRequest).user!;
     return success(res, { entry: await cancelWalkInService(routeParam(req, "id"), user.id) });
-  };
-
-  public recordPayment = async (req: Request, res: Response) => {
-    const user = (req as AuthenticatedRequest).user!;
-    const result = await recordPaymentService(
-      {
-        appointmentId: req.body.appointmentId,
-        amount: Number(req.body.amount),
-        method: req.body.method,
-        receiptNumber: req.body.receiptNumber,
-        note: req.body.note,
-        paidAt: req.body.paidAt ? new Date(req.body.paidAt) : undefined,
-      },
-      user.id,
-    );
-    return success(res, result, "Payment recorded", 201);
-  };
-
-  public listPayments = async (req: Request, res: Response) => {
-    return success(res, await listPaymentsService(req.query.appointmentId as string));
-  };
-
-  public reversePayment = async (req: Request, res: Response) => {
-    const user = (req as AuthenticatedRequest).user!;
-    const result = await reversePaymentService(routeParam(req, "id"), user.id, req.body.reason);
-    return success(res, result, "Payment reversed");
   };
 }

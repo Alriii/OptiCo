@@ -23,30 +23,6 @@ export const startWalkInSchema = z.object({
   }),
 });
 
-export const paymentQuerySchema = z.object({
-  query: z.object({
-    appointmentId: z.uuid("A valid appointment id is required"),
-  }),
-});
-
-export const recordPaymentSchema = z.object({
-  body: z.object({
-    appointmentId: z.uuid("A valid appointment id is required"),
-    amount: z.coerce.number().positive("Amount must be greater than zero").max(10_000_000),
-    method: z.enum(["CASH", "CARD", "BANK_TRANSFER", "EWALLET", "OTHER"]),
-    receiptNumber: z.string().trim().max(80).optional(),
-    note: z.string().trim().max(300).optional(),
-    paidAt: z.iso.datetime({ offset: true }).optional(),
-  }),
-});
-
-export const reversePaymentSchema = z.object({
-  params: z.object({ id: z.uuid() }),
-  body: z.object({
-    reason: z.string().trim().min(3, "A reason is required").max(300),
-  }),
-});
-
 export const patientSearchSchema = z.object({
   query: z.object({
     ...paginationQuery,

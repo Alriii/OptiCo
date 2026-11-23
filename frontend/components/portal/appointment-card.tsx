@@ -31,9 +31,6 @@ export function AppointmentCard({
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="font-medium">{serviceName}</h3>
             <StatusBadge kind="appointment" status={appointment.status} />
-            {appointment.paymentStatus ? (
-              <StatusBadge kind="payment" status={appointment.paymentStatus} />
-            ) : null}
           </div>
           <p className="font-mono text-xs text-muted-foreground">
             {appointment.reference ?? appointment.id}

@@ -15,9 +15,6 @@ export const PERMISSIONS = [
   "services.manage",
   "doctors.manage",
   "schedules.manage",
-  "payments.read",
-  "payments.record",
-  "payments.correct",
   "staff.manage",
   "clinic_settings.manage",
   "audit_logs.read",
@@ -47,8 +44,6 @@ const RECEPTIONIST: Permission[] = [
   "appointments.check_in",
   "appointments.complete",
   "walkins.manage",
-  "payments.read",
-  "payments.record",
 ];
 
 const ADMIN: Permission[] = [...PERMISSIONS];

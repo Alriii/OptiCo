@@ -24,7 +24,7 @@ export default function PrivacyPage() {
         {
           heading: "Sharing and retention",
           body: [
-            "Appointment details are visible only to the patient or guest linked to the booking and to authorized clinic staff who need them for scheduling and payment operations.",
+            "Appointment details are visible only to the patient or guest linked to the booking and to authorized clinic staff who need them for scheduling and clinical care operations.",
             "Retention periods, processor arrangements, and data-subject request procedures must be confirmed by the clinic before real patient data is entered.",
           ],
         },

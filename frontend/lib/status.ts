@@ -30,15 +30,6 @@ const QUEUE_STATUS: Record<string, StatusMeta> = {
   CANCELLED: { label: "Cancelled", tone: "neutral" },
 };
 
-const PAYMENT_STATUS: Record<string, StatusMeta> = {
-  UNPAID: { label: "Unpaid", tone: "warning" },
-  PARTIAL: { label: "Partially paid", tone: "warning" },
-  PARTIALLY_PAID: { label: "Partially paid", tone: "warning" },
-  PAID: { label: "Paid", tone: "success" },
-  REFUNDED: { label: "Refunded", tone: "neutral" },
-  REVERSED: { label: "Reversed", tone: "danger" },
-};
-
 export function appointmentStatusMeta(status?: string | null): StatusMeta {
   return (
     APPOINTMENT_STATUS[status?.toUpperCase() ?? ""] ?? {
@@ -51,15 +42,6 @@ export function appointmentStatusMeta(status?: string | null): StatusMeta {
 export function queueStatusMeta(status?: string | null): StatusMeta {
   return (
     QUEUE_STATUS[status?.toUpperCase() ?? ""] ?? {
-      label: status ? status.replace(/_/g, " ") : "Unknown",
-      tone: "neutral",
-    }
-  );
-}
-
-export function paymentStatusMeta(status?: string | null): StatusMeta {
-  return (
-    PAYMENT_STATUS[status?.toUpperCase() ?? ""] ?? {
       label: status ? status.replace(/_/g, " ") : "Unknown",
       tone: "neutral",
     }

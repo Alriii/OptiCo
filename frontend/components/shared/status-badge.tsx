@@ -2,7 +2,6 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import {
   appointmentStatusMeta,
-  paymentStatusMeta,
   queueStatusMeta,
   type StatusTone,
 } from "@/lib/status";
@@ -18,7 +17,7 @@ const TONE_CLASSES: Record<StatusTone, string> = {
     "border-red-200 bg-red-50 text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-200",
 };
 
-type StatusKind = "appointment" | "queue" | "payment";
+type StatusKind = "appointment" | "queue";
 
 interface StatusBadgeProps {
   kind: StatusKind;
@@ -30,9 +29,7 @@ export function StatusBadge({ kind, status, className }: StatusBadgeProps) {
   const meta =
     kind === "queue"
       ? queueStatusMeta(status)
-      : kind === "payment"
-        ? paymentStatusMeta(status)
-        : appointmentStatusMeta(status);
+      : appointmentStatusMeta(status);
 
   return (
     <Badge

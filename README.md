@@ -20,7 +20,7 @@
 
 **OptiCo** is a full-stack digital clinic system designed for modern optometry clinics and eyewear diagnostic centers. Guided by the clinic character **Dr. Octo**, OptiCo bridges public patient booking with specialized back-office workflows for optometrists, receptionists, and clinic administrators.
 
-The system handles the entire lifecycle of an optical visit: from initial online appointment requests and walk-in queue management to optometrist availability assignment, diagnostic cashiering, and comprehensive audit logs.
+The system handles the entire lifecycle of an optical visit: from initial online appointment requests and walk-in queue management to optometrist availability assignment, care coordination, and comprehensive audit logs.
 
 ### Key Capabilities
 
@@ -28,7 +28,7 @@ The system handles the entire lifecycle of an optical visit: from initial online
 * **Guest Booking Management**: Frictionless guest bookings accessed through secure, token-scoped private URLs—no account creation required.
 * **Patient Portal**: Personalized dashboard with active appointment tracking, Dr. Octo's 20-20-20 vision health tips, rescheduling, and request cancellation.
 * **Doctor Schedule Portal**: Daily assigned patient timeline, live consultation status controls (Checked In, In Progress, Completed), and recurring schedule configuration.
-* **Staff Reception Desk**: Instant walk-in registration, pending request approval queue with conflict revalidation, clinic calendar, and integrated payment cashiering.
+* **Staff Reception Desk**: Instant walk-in registration, pending request approval queue with conflict revalidation, and interactive clinic calendar.
 * **Admin Management Suite**: Full control over service catalogs (pricing, duration), doctor credentialing & service eligibility mapping, staff invitations with RBAC, and system audit logs.
 * **Enterprise Security Baseline**: First-party HTTP-only cookie authentication, access and refresh JWT rotation, Double Submit Cookie CSRF defense with strict origin allowlisting, and Helmet security headers.
 
@@ -173,7 +173,7 @@ When testing locally or on the live deployment, 1-click preset logins are availa
 |---|---|---|---|
 | **Admin** | `admin@optico.local` | `Password123!` | Full clinic administration, catalog, staff & audit logs |
 | **Doctor** | `doctor.reyes@optico.local` | `Password123!` | Assigned appointments, consultation status & schedule |
-| **Staff** | `receptionist@optico.local` | `Password123!` | Request queue, walk-in reception, calendar & payments |
+| **Staff** | `receptionist@optico.local` | `Password123!` | Request queue, walk-in reception & clinic calendar |
 | **Patient** | `patient@optico.local` | `Password123!` | Personal visits, bookings, rescheduling & profile |
 
 ---

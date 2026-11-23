@@ -9,7 +9,6 @@ import {
   ListOrdered,
   RefreshCw,
   Stethoscope,
-  Wallet,
 } from "lucide-react";
 import { adminService } from "@/services/admin.service";
 import { getApiError } from "@/lib/api-error";
@@ -110,10 +109,10 @@ export default function AdminOverviewPage() {
               hint="Published for assignment"
             />
             <StatCard
-              label="Unpaid visits"
-              value={overview?.unpaidAppointments ?? 0}
-              icon={Wallet}
-              hint="Payment follow-up"
+              label="Active services"
+              value={overview?.activeServices ?? 0}
+              icon={ClipboardList}
+              hint="Available in catalog"
             />
           </div>
 

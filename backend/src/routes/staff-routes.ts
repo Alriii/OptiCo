@@ -12,11 +12,8 @@ import {
 } from "@/schema/appointment-schema";
 import { idParamsSchema } from "@/schema/common-schema";
 import {
-  paymentQuerySchema,
   patientSearchSchema,
-  recordPaymentSchema,
   registerWalkInSchema,
-  reversePaymentSchema,
   startWalkInSchema,
   walkInQuerySchema,
 } from "@/schema/operations-schema";
@@ -47,9 +44,5 @@ router.post("/walk-ins/:id/call", permission.require("walkins.manage"), schema.v
 router.post("/walk-ins/:id/start", permission.require("walkins.manage"), schema.validate(startWalkInSchema), controller.startWalkIn);
 router.post("/walk-ins/:id/complete", permission.require("walkins.manage"), schema.validate(idParamsSchema), controller.completeWalkIn);
 router.post("/walk-ins/:id/cancel", permission.require("walkins.manage"), schema.validate(idParamsSchema), controller.cancelWalkIn);
-
-router.post("/payments", permission.require("payments.record"), schema.validate(recordPaymentSchema), controller.recordPayment);
-router.get("/payments", permission.require("payments.read"), schema.validate(paymentQuerySchema), controller.listPayments);
-router.post("/payments/:id/reverse", permission.require("payments.correct"), schema.validate(reversePaymentSchema), controller.reversePayment);
 
 export default router;

@@ -10,3 +10,5 @@ coverage/
 Thumbs.db
 *.log
 .vercel
+*.pptx
+~$*

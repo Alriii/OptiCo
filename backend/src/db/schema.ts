@@ -41,7 +41,6 @@ export const walkInStatus = pgEnum("walk_in_status", [
   "NO_SHOW",
   "CANCELLED",
 ]);
-export const paymentMethod = pgEnum("payment_method", ["CASH", "CARD", "BANK_TRANSFER", "EWALLET", "OTHER"]);
 export const auditActorType = pgEnum("audit_actor_type", ["USER", "GUEST", "SYSTEM"]);
 
 const timestamps = {
@@ -353,32 +352,6 @@ export const tokens = pgTable(
   (table) => [index("tokens_user_purpose_idx").on(table.userId, table.purpose)],
 );
 
-export const payments = pgTable(
-  "payments",
-  {
-    id: uuid("id").defaultRandom().primaryKey(),
-    appointmentId: uuid("appointment_id")
-      .notNull()
-      .references(() => appointments.id, { onDelete: "restrict" }),
-    amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
-    currency: text("currency").notNull().default("PHP"),
-    method: paymentMethod("method").notNull(),
-    receiptNumber: text("receipt_number"),
-    recordedByUserId: uuid("recorded_by_user_id").references(() => users.id, { onDelete: "set null" }),
-    paidAt: timestamp("paid_at", { withTimezone: true }).notNull().defaultNow(),
-    note: text("note"),
-    reversesPaymentId: uuid("reverses_payment_id").references((): AnyPgColumn => payments.id, { onDelete: "restrict" }),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  },
-  (table) => [
-    check("payments_amount_positive", sql`${table.amount} > 0`),
-    check("payments_currency_php", sql`${table.currency} = 'PHP'`),
-    check("payments_reversal_not_self", sql`${table.reversesPaymentId} IS NULL OR ${table.reversesPaymentId} <> ${table.id}`),
-    uniqueIndex("payments_reversal_unique").on(table.reversesPaymentId),
-    index("payments_appointment_idx").on(table.appointmentId),
-  ],
-);
-
 export const emailOutbox = pgTable(
   "email_outbox",
   {
@@ -467,7 +440,6 @@ export type Doctor = typeof doctors.$inferSelect;
 export type Service = typeof services.$inferSelect;
 export type Appointment = typeof appointments.$inferSelect;
 export type WalkInQueueEntry = typeof walkInQueueEntries.$inferSelect;
-export type Payment = typeof payments.$inferSelect;
 export type EmailOutboxRow = typeof emailOutbox.$inferSelect;
 export type ClinicSettings = typeof clinicSettings.$inferSelect;
 export type UserRole = (typeof userRole.enumValues)[number];
@@ -475,4 +447,3 @@ export type UserStatus = (typeof userStatus.enumValues)[number];
 export type AppointmentStatus = (typeof appointmentStatus.enumValues)[number];
 export type AppointmentSource = (typeof appointmentSource.enumValues)[number];
 export type WalkInStatus = (typeof walkInStatus.enumValues)[number];
-export type PaymentMethod = (typeof paymentMethod.enumValues)[number];

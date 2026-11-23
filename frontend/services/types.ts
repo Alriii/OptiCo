@@ -109,7 +109,6 @@ export interface Appointment {
   endsAt?: string;
   durationMinutes?: number;
   fee?: number | string;
-  paymentStatus?: string;
   note?: string;
   guardian?: Guardian | null;
   createdAt?: string;
@@ -146,19 +145,6 @@ export interface WalkIn {
   calledAt?: string | null;
   startedAt?: string | null;
   completedAt?: string | null;
-}
-
-export interface Payment {
-  id: string;
-  appointmentId: string;
-  appointmentReference?: string;
-  amount: number | string;
-  currency?: string;
-  method: string;
-  receiptNumber?: string | null;
-  paidAt?: string;
-  recordedBy?: string;
-  note?: string | null;
 }
 
 export interface StaffMember {
@@ -224,7 +210,7 @@ export interface AdminOverview {
   confirmedToday?: number;
   walkInsWaiting?: number;
   doctorsActive?: number;
-  unpaidAppointments?: number;
+  activeServices?: number;
   [key: string]: unknown;
 }
 

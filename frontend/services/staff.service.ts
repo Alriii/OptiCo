@@ -5,7 +5,6 @@ import type {
   ListPayload,
   PaginationParams,
   PatientProfile,
-  Payment,
   StaffAppointmentParams,
   WalkIn,
 } from "./types";
@@ -24,22 +23,6 @@ export interface WalkInInput {
   patient: WalkInPatientInput;
   serviceId?: string;
   immediate?: boolean;
-}
-
-export type PaymentMethod =
-  | "CASH"
-  | "CARD"
-  | "BANK_TRANSFER"
-  | "EWALLET"
-  | "OTHER";
-
-export interface PaymentInput {
-  appointmentId: string;
-  amount: number;
-  method: PaymentMethod;
-  receiptNumber?: string;
-  paidAt?: string;
-  note?: string;
 }
 
 export const staffService = {
@@ -165,25 +148,6 @@ export const staffService = {
   async cancelWalkIn(id: string): Promise<ApiEnvelope<WalkIn>> {
     const response = await api.post<ApiEnvelope<WalkIn>>(
       `/staff/walk-ins/${id}/cancel`,
-    );
-    return response.data;
-  },
-
-  async recordPayment(
-    input: PaymentInput,
-  ): Promise<ApiEnvelope<{ payment: Payment; balance?: unknown }>> {
-    const response = await api.post<
-      ApiEnvelope<{ payment: Payment; balance?: unknown }>
-    >("/staff/payments", input);
-    return response.data;
-  },
-
-  async getPayments(
-    appointmentId?: string,
-  ): Promise<ApiEnvelope<ListPayload<Payment>>> {
-    const response = await api.get<ApiEnvelope<ListPayload<Payment>>>(
-      "/staff/payments",
-      { params: appointmentId ? { appointmentId } : undefined },
     );
     return response.data;
   },

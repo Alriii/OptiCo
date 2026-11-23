@@ -17,7 +17,6 @@ import {
   Stethoscope,
   UserRound,
   UsersRound,
-  Wallet,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { ROLE_LABELS, portalPathForRole, type Role } from "@/lib/auth-redirect";
@@ -57,7 +56,6 @@ const NAV_BY_ROLE: Record<Role, { href: string; label: string; icon: typeof Layo
     { href: "/staff/appointments", label: "Appointments", icon: CalendarDays },
     { href: "/staff/calendar", label: "Calendar", icon: CalendarRange },
     { href: "/staff/walk-ins", label: "Walk-ins", icon: ListOrdered },
-    { href: "/staff/payments", label: "Payments", icon: Wallet },
   ],
   ADMIN: [
     { href: "/admin", label: "Overview", icon: LayoutDashboard },

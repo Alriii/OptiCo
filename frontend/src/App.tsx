@@ -39,7 +39,6 @@ import StaffQueuePage from "@/app/staff/page";
 import StaffAppointmentsPage from "@/app/staff/appointments/page";
 import StaffCalendarPage from "@/app/staff/calendar/page";
 import StaffWalkInsPage from "@/app/staff/walk-ins/page";
-import StaffPaymentsPage from "@/app/staff/payments/page";
 
 // Admin portal pages
 import AdminOverviewPage from "@/app/admin/page";
@@ -258,7 +257,6 @@ export default function App() {
         <Route path="/staff/appointments" element={<StaffAppointmentsPage />} />
         <Route path="/staff/calendar" element={<StaffCalendarPage />} />
         <Route path="/staff/walk-ins" element={<StaffWalkInsPage />} />
-        <Route path="/staff/payments" element={<StaffPaymentsPage />} />
       </Route>
 
       {/* Admin portal */}
