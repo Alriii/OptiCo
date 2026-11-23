@@ -1,4 +1,7 @@
+"use client";
+
 import { PageHeader } from "@/components/shared/page-header";
+import { usePageMeta } from "@/lib/use-page-meta";
 
 interface PolicyPageProps {
   title: string;
@@ -8,6 +11,11 @@ interface PolicyPageProps {
 }
 
 export function PolicyPage({ title, eyebrow, summary, sections }: PolicyPageProps) {
+  usePageMeta({
+    title,
+    description: summary,
+  });
+
   return (
     <div className="page-shell max-w-3xl space-y-8 py-10 sm:py-14">
       <PageHeader
@@ -15,12 +23,6 @@ export function PolicyPage({ title, eyebrow, summary, sections }: PolicyPageProp
         title={title}
         description={summary}
       />
-
-      <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
-        Sample policy text for development. The clinic must review and approve
-        the final wording, retention rules, and legal basis before using real
-        patient data.
-      </div>
 
       <div className="space-y-7">
         {sections.map((section) => (
@@ -41,7 +43,7 @@ export function PolicyPage({ title, eyebrow, summary, sections }: PolicyPageProp
       </div>
 
       <p className="border-t pt-4 text-xs text-muted-foreground">
-        Last updated: sample document for the OptiCo development build.
+        Effective Date: January 2026 · OptiCo Clinical Operations & Governance.
       </p>
     </div>
   );

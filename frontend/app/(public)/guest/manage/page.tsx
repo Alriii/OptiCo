@@ -1,6 +1,13 @@
 import { GuestManager } from "@/components/public/guest-manager";
+import { usePageMeta } from "@/lib/use-page-meta";
 
 export default function GuestManagePage() {
+  usePageMeta({
+    title: "Manage Guest Appointment",
+    description:
+      "Securely view, track, or request cancellation for your OptiCo appointment using your private booking confirmation link.",
+  });
+
   return (
     <div className="page-shell max-w-3xl py-10 sm:py-14">
       <div className="mb-8 overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-r from-primary/10 via-background to-secondary/30 p-6 sm:p-8 shadow-xs">

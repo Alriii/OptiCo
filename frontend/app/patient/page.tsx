@@ -14,6 +14,7 @@ import { AppointmentCard } from "@/components/portal/appointment-card";
 import { LoadingState } from "@/components/shared/loading-state";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
+import { usePageMeta } from "@/lib/use-page-meta";
 
 const ACTIVE = new Set(["PENDING", "CONFIRMED", "CHECKED_IN", "IN_PROGRESS"]);
 
@@ -27,6 +28,11 @@ export default function PatientDashboardPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  usePageMeta({
+    title: "Patient Overview",
+    description: "OptiCo patient portal overview, appointment status, and visit records.",
+  });
 
   const load = useCallback(async () => {
     setLoading(true);

@@ -1,7 +1,14 @@
 import { useSearchParams } from "next/navigation";
 import { BookingFlow } from "@/components/public/booking-flow";
+import { usePageMeta } from "@/lib/use-page-meta";
 
 export default function BookingPage() {
+  usePageMeta({
+    title: "Request an Appointment",
+    description:
+      "Schedule your vision consultation or eye exam online. Select your service, preferred clinic date, and dedicated time slot.",
+  });
+
   const searchParams = useSearchParams();
   const service = searchParams.get("service") || undefined;
 

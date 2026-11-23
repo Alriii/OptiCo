@@ -11,7 +11,7 @@ import { loginSchema, type LoginInput } from "@/services/auth.service";
 import { getApiError } from "@/lib/api-error";
 import { Button } from "@/components/ui/button";
 
-const DEMO_PRESETS = [
+const ROLE_PRESETS = [
   { role: "Admin", email: "admin@optico.local", label: "Admin" },
   { role: "Doctor", email: "doctor.reyes@optico.local", label: "Doctor" },
   { role: "Staff", email: "receptionist@optico.local", label: "Staff" },
@@ -67,19 +67,19 @@ export function LoginForm({
         </p>
       </div>
 
-      {/* Quick Demo Credentials Bar */}
+      {/* Quick Role Fill Credentials Bar */}
       <div className="mb-6 rounded-2xl border border-border/60 bg-secondary/50 p-3">
         <div className="mb-2 flex items-center justify-between px-0.5">
           <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             <Sparkles className="size-3 text-primary" />
-            1-Click Demo Fill
+            Quick Role Fill
           </span>
           <span className="text-[10px] text-muted-foreground/75">
-            Select user role
+            Select profile
           </span>
         </div>
         <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
-          {DEMO_PRESETS.map((p) => {
+          {ROLE_PRESETS.map((p) => {
             const isSelected = activePreset === p.role;
             return (
               <button
@@ -172,7 +172,7 @@ export function LoginForm({
               Password
             </label>
             <span className="text-[11px] text-muted-foreground/70">
-              Demo: <code className="font-mono text-foreground">Password123!</code>
+              Credential: <code className="font-mono text-foreground">Password123!</code>
             </span>
           </div>
           <div className="relative">

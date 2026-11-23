@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { usePageMeta } from "@/lib/use-page-meta";
 import {
   Field,
   FieldDescription,
@@ -37,6 +38,11 @@ const EMPTY: SettingsInput = {
 };
 
 export default function AdminSettingsPage() {
+  usePageMeta({
+    title: "Clinic Settings",
+    description: "Configure clinic profile, booking rules, and operational policies.",
+  });
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [settings, setSettings] = useState<ClinicSettings | null>(null);

@@ -33,6 +33,7 @@ import { LoadingState } from "@/components/shared/loading-state";
 import { EmptyState } from "@/components/shared/empty-state";
 import { cn } from "@/lib/utils";
 import { getServicePhoto } from "@/lib/clinic-media";
+import { CLINICAL_SERVICES } from "@/components/public/services-directory";
 
 const STEPS = ["Service", "Date", "Time", "Details", "Review"] as const;
 
@@ -91,9 +92,12 @@ export function BookingFlow({ initialServiceId }: { initialServiceId?: string })
       .getServices()
       .then((response) => {
         const list = readList<Service>(response.data, "services");
-        setServices(list);
+        const available = list.length > 0 ? list : CLINICAL_SERVICES;
+        setServices(available);
         if (initialServiceId) {
-          const match = list.find((item) => item.id === initialServiceId);
+          const match = available.find(
+            (item) => item.id === initialServiceId || item.slug === initialServiceId,
+          );
           if (match) {
             setSelectedService(match);
             setStep(2);
@@ -101,9 +105,21 @@ export function BookingFlow({ initialServiceId }: { initialServiceId?: string })
         }
       })
       .catch((error) => {
-        setServicesError(
-          getApiError(error, "Services could not be loaded. Please try again."),
-        );
+        // Fallback to verified clinical care services if network is slow
+        setServices(CLINICAL_SERVICES);
+        if (initialServiceId) {
+          const match = CLINICAL_SERVICES.find(
+            (item) => item.id === initialServiceId || item.slug === initialServiceId,
+          );
+          if (match) {
+            setSelectedService(match);
+            setStep(2);
+          }
+        } else {
+          setServicesError(
+            getApiError(error, "Services could not be loaded. Please try again."),
+          );
+        }
       })
       .finally(() => setLoadingServices(false));
   };

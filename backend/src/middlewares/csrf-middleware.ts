@@ -11,22 +11,25 @@ function bearerToken(req: Request): string | undefined {
   return scheme?.toLowerCase() === "bearer" && token ? token.trim() : undefined;
 }
 
+function isOriginAllowed(origin: string): boolean {
+  const cleanOrigin = origin.replace(/\/$/, "");
+  if (ENV.FRONTEND_ORIGINS.includes(cleanOrigin)) return true;
+  if (/^https:\/\/opti-co(-[a-z0-9-]+)?\.vercel\.app$/.test(cleanOrigin)) return true;
+  if (!ENV.IS_PRODUCTION && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(cleanOrigin)) return true;
+  return false;
+}
+
 function originAllowed(req: Request): boolean {
   const origin = req.get("origin");
   if (origin) {
-    const cleanOrigin = origin.replace(/\/$/, "");
-    if (ENV.FRONTEND_ORIGINS.includes(cleanOrigin)) return true;
-    if (/^https:\/\/opti-co(-[a-z0-9-]+)?\.vercel\.app$/.test(cleanOrigin)) return true;
-    return false;
+    return isOriginAllowed(origin);
   }
 
   const referer = req.get("referer");
   if (!origin && referer) {
     try {
       const refererOrigin = new URL(referer).origin;
-      if (ENV.FRONTEND_ORIGINS.includes(refererOrigin)) return true;
-      if (/^https:\/\/opti-co(-[a-z0-9-]+)?\.vercel\.app$/.test(refererOrigin)) return true;
-      return false;
+      return isOriginAllowed(refererOrigin);
     } catch {
       return false;
     }

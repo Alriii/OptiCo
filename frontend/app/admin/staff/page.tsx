@@ -31,8 +31,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { usePageMeta } from "@/lib/use-page-meta";
 
 export default function AdminStaffPage() {
+  usePageMeta({
+    title: "Staff Management",
+    description: "Invite and manage receptionist and clinic administration staff.",
+  });
   const { user } = useAuth();
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { DEMO_CLINIC, DEMO_NOTICE } from "@/lib/demo-clinic";
+import { CLINIC_PROFILE } from "@/lib/demo-clinic";
 
 const POLICY_LINKS = [
   { href: "/policies/privacy", label: "Privacy notice" },
@@ -28,9 +28,9 @@ export function PublicFooter() {
 
         <div className="space-y-2 text-sm">
           <p className="font-medium">Visit</p>
-          <p className="text-muted-foreground">{DEMO_CLINIC.address}</p>
-          <p className="text-muted-foreground">{DEMO_CLINIC.phone}</p>
-          <p className="text-muted-foreground">{DEMO_CLINIC.email}</p>
+          <p className="text-muted-foreground">{CLINIC_PROFILE.address}</p>
+          <p className="text-muted-foreground">{CLINIC_PROFILE.phone}</p>
+          <p className="text-muted-foreground">{CLINIC_PROFILE.email}</p>
         </div>
 
         <div className="space-y-2 text-sm">
@@ -65,8 +65,8 @@ export function PublicFooter() {
 
       <div className="border-t">
         <div className="page-shell flex flex-col gap-2 py-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <p>{DEMO_NOTICE}</p>
-          <p>Timezone: Asia/Manila · Currency: PHP</p>
+          <p>© {new Date().getFullYear()} OptiCo Optical Clinic & Diagnostic Studio. All rights reserved.</p>
+          <p>Makati City, Metro Manila · Asia/Manila (PHT)</p>
         </div>
       </div>
     </footer>

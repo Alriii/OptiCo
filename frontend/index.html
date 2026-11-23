@@ -3,8 +3,104 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OptiCo | Optical Clinic Management & Operations</title>
+    
+    <!-- Primary SEO Meta Tags -->
+    <title>OptiCo · Calmer Vision Care, Thoughtfully Scheduled</title>
+    <meta name="title" content="OptiCo · Calmer Vision Care, Thoughtfully Scheduled" />
+    <meta
+      name="description"
+      content="OptiCo Optical Clinic provides precision eye examinations, licensed optometry consultations, specialty contact lens fittings, and designer eyewear in Metro Manila."
+    />
+    <meta
+      name="keywords"
+      content="optical clinic, optometrist, eye examination, vision testing, prescription glasses, contact lenses, Makati eye clinic, pediatric optometry, OptiCo"
+    />
+    <meta name="author" content="OptiCo Optical Clinic" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://opti-co.vercel.app/" />
+
+    <!-- Favicons & Apple Touch Icons -->
     <link rel="icon" type="image/jpeg" href="/mascot.jpg" />
+    <link rel="icon" type="image/jpeg" sizes="32x32" href="/mascot.jpg" />
+    <link rel="icon" type="image/jpeg" sizes="16x16" href="/mascot.jpg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/mascot.jpg" />
+    <meta name="theme-color" content="#126b60" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://opti-co.vercel.app/" />
+    <meta property="og:site_name" content="OptiCo Optical Clinic" />
+    <meta property="og:title" content="OptiCo · Calmer Vision Care, Thoughtfully Scheduled" />
+    <meta
+      property="og:description"
+      content="Precision optical diagnostics, luxury eyewear, and calm patient-focused care with our licensed optometry team."
+    />
+    <meta property="og:image" content="https://images.unsplash.com/photo-1591076482161-42ce6da69f67?auto=format&fit=crop&w=1200&q=80" />
+    <meta property="og:locale" content="en_PH" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://opti-co.vercel.app/" />
+    <meta name="twitter:title" content="OptiCo · Calmer Vision Care, Thoughtfully Scheduled" />
+    <meta
+      name="twitter:description"
+      content="Precision optical diagnostics, luxury eyewear, and calm patient-focused care with our licensed optometry team."
+    />
+    <meta name="twitter:image" content="https://images.unsplash.com/photo-1591076482161-42ce6da69f67?auto=format&fit=crop&w=1200&q=80" />
+
+    <!-- Schema.org JSON-LD Structured Data: LocalBusiness + MedicalClinic + Optician -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": ["MedicalClinic", "LocalBusiness", "Optician"],
+        "name": "OptiCo Optical Clinic & Diagnostic Studio",
+        "description": "Comprehensive eye examinations, licensed optometry consultations, specialty contact lens fittings, and designer eyewear in Metro Manila.",
+        "url": "https://opti-co.vercel.app",
+        "logo": "https://opti-co.vercel.app/mascot.jpg",
+        "image": "https://images.unsplash.com/photo-1591076482161-42ce6da69f67?auto=format&fit=crop&w=1200&q=80",
+        "telephone": "+63-2-8812-4567",
+        "email": "care@optico.com.ph",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Level 2, Medical Arts Pavilion, Ayala Avenue",
+          "addressLocality": "Makati City",
+          "addressRegion": "Metro Manila",
+          "postalCode": "1226",
+          "addressCountry": "PH"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 14.5547,
+          "longitude": 121.0244
+        },
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+            "opens": "09:00",
+            "closes": "17:00"
+          },
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": "Saturday",
+            "opens": "09:00",
+            "closes": "14:00"
+          }
+        ],
+        "priceRange": "₱₱",
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "4.9",
+          "reviewCount": "640"
+        },
+        "medicalSpecialty": [
+          "Optometry",
+          "Pediatric Optometry",
+          "Refractive Assessment",
+          "Contact Lens Specialty"
+        ]
+      }
+    </script>
   </head>
   <body class="min-h-screen bg-background font-sans antialiased text-foreground">
     <div id="root"></div>

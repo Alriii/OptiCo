@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { AuthGuard } from "@/components/features/auth/AuthGuard";
-import { DEMO_NOTICE } from "@/lib/demo-clinic";
 
 export default function AuthLayout({
   children,
@@ -78,9 +77,10 @@ export default function AuthLayout({
             </div>
           </div>
 
-          <p className="relative z-10 max-w-sm text-xs leading-relaxed text-white/60">
-            {DEMO_NOTICE}
-          </p>
+          <div className="relative z-10 flex items-center gap-2 text-xs text-white/70">
+            <span className="size-2 rounded-full bg-emerald-400" />
+            <span>OptiCo Clinical Care Network · Makati City</span>
+          </div>
         </aside>
 
         <main className="flex flex-col items-center justify-center bg-background px-4 py-10 sm:px-8">

@@ -2,8 +2,14 @@
 
 import { PageHeader } from "@/components/shared/page-header";
 import { StaffAppointments } from "@/components/portal/staff-appointments";
+import { usePageMeta } from "@/lib/use-page-meta";
 
 export default function StaffQueuePage() {
+  usePageMeta({
+    title: "Staff Queue",
+    description: "Manage pending appointment requests and clinic triage queue.",
+  });
+
   return (
     <div className="space-y-6">
       <PageHeader

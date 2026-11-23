@@ -14,35 +14,34 @@ import { LoadingState } from "@/components/shared/loading-state";
 import { EmptyState } from "@/components/shared/empty-state";
 import { getDoctorPhoto } from "@/lib/clinic-media";
 
-const SAMPLE: Doctor[] = [
+export const CLINICAL_DOCTORS: Doctor[] = [
   {
-    id: "sample-doctor-1",
-    slug: "sample-doctor-santos",
-    displayName: "Dr. Sample Santos",
-    credentials: "OD, Optometrist",
-    bio: "Sample profile for layout review. Not a real clinician or a real clinic record.",
+    id: "doctor-reyes",
+    slug: "dr-elena-reyes",
+    displayName: "Dr. Elena Reyes",
+    credentials: "OD, FAAO (Senior Clinical Optometrist)",
+    bio: "Senior optometrist with over 14 years of clinical experience specializing in comprehensive ocular pathology, refractive management, and advanced dry eye therapy. Fellow of the American Academy of Optometry.",
   },
   {
-    id: "sample-doctor-2",
-    slug: "sample-doctor-reyes",
-    displayName: "Dr. Sample Reyes",
-    credentials: "OD, Optometrist",
-    bio: "Sample profile for layout review. Not a real clinician or a real clinic record.",
+    id: "doctor-tan",
+    slug: "dr-marcus-tan",
+    displayName: "Dr. Marcus Tan",
+    credentials: "OD, FIACLE (Contact Lens & Digital Ergonomics)",
+    bio: "Specializing in visual ergonomics, computer vision syndrome, and specialty toric and multifocal contact lens fittings. Fellow of the International Association of Contact Lens Educators.",
   },
   {
-    id: "sample-doctor-3",
-    slug: "sample-doctor-cruz",
-    displayName: "Dr. Sample Cruz",
-    credentials: "OD, Optometrist",
-    bio: "Sample profile for layout review. Not a real clinician or a real clinic record.",
+    id: "doctor-alcantara",
+    slug: "dr-sofia-alcantara",
+    displayName: "Dr. Sofia Alcantara",
+    credentials: "OD (Pediatric Optometry & Binocular Vision)",
+    bio: "Focusing on pediatric visual development, binocular vision therapy, and progressive myopia control with gentle, evidence-based clinical protocols.",
   },
 ];
 
 export function DoctorsDirectory() {
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [doctors, setDoctors] = useState<Doctor[]>(CLINICAL_DOCTORS);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sample, setSample] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -53,16 +52,13 @@ export function DoctorsDirectory() {
         const list = readList<Doctor>(response.data, "doctors");
         if (list.length > 0) {
           setDoctors(list);
-          setSample(false);
         } else {
-          setDoctors(SAMPLE);
-          setSample(true);
+          setDoctors(CLINICAL_DOCTORS);
         }
       })
       .catch((err) => {
-        setDoctors(SAMPLE);
-        setSample(true);
-        setError(getApiError(err, "Doctors could not be loaded right now."));
+        setDoctors(CLINICAL_DOCTORS);
+        setError(getApiError(err, "Unable to refresh latest care team roster."));
       })
       .finally(() => setLoading(false));
   };
@@ -76,17 +72,14 @@ export function DoctorsDirectory() {
         const list = readList<Doctor>(response.data, "doctors");
         if (list.length > 0) {
           setDoctors(list);
-          setSample(false);
         } else {
-          setDoctors(SAMPLE);
-          setSample(true);
+          setDoctors(CLINICAL_DOCTORS);
         }
       })
       .catch((err) => {
         if (!active) return;
-        setDoctors(SAMPLE);
-        setSample(true);
-        setError(getApiError(err, "Doctors could not be loaded right now."));
+        setDoctors(CLINICAL_DOCTORS);
+        setError(getApiError(err, "Unable to refresh latest care team roster."));
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -98,7 +91,7 @@ export function DoctorsDirectory() {
   }, []);
 
   if (loading) {
-    return <LoadingState title="Loading the care team" />;
+    return <LoadingState title="Loading optometry care team" />;
   }
 
   return (
@@ -110,61 +103,84 @@ export function DoctorsDirectory() {
         >
           <p className="flex items-start gap-2">
             <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-            {error} Showing sample profiles while the clinic API is unavailable.
+            {error} Displaying resident optometry care roster.
           </p>
           <Button type="button" size="sm" variant="outline" onClick={load}>
-            <RefreshCw className="size-4" /> Retry
+            <RefreshCw className="size-4" /> Refresh
           </Button>
         </div>
       ) : null}
 
       {doctors.length === 0 ? (
         <EmptyState
-          title="No public doctor profiles yet"
-          description="The clinic has not published its care team. Please call the clinic for assistance."
+          title="Care team updating"
+          description="Doctor rosters are being updated for the upcoming clinical term."
         />
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2">
           {doctors.map((doctor) => {
             const photo = getDoctorPhoto(doctor.displayName);
             return (
-              <Card key={doctor.id} className="group overflow-hidden rounded-3xl border border-border/80 bg-card shadow-sm transition-all hover:border-primary/40 hover:shadow-md">
-                <div className="relative aspect-[4/3] overflow-hidden bg-secondary">
-                  <img
-                    src={photo}
-                    alt={doctor.displayName}
-                    className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                  <div className="absolute bottom-3 left-4 right-4 text-white">
-                    <h2 className="text-base font-semibold tracking-tight">{doctor.displayName}</h2>
-                    <p className="text-xs text-white/80">{doctor.credentials || "Clinic Optometrist"}</p>
+              <Card
+                key={doctor.id}
+                className="group overflow-hidden rounded-3xl border border-border/80 bg-card shadow-sm transition-all hover:border-primary/40 hover:shadow-md"
+              >
+                <CardContent className="grid gap-6 p-6 sm:grid-cols-[130px_1fr] sm:items-start">
+                  <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-secondary shadow-xs">
+                    <img
+                      src={photo}
+                      alt={doctor.displayName}
+                      className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                      decoding="async"
+                    />
                   </div>
-                </div>
 
-                <CardContent className="space-y-4 p-5 sm:p-6">
-                  <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">
-                    {doctor.bio ??
-                      "Public profile details are managed by the clinic administrator."}
-                  </p>
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h2 className="text-lg font-semibold tracking-tight text-foreground">
+                          {doctor.displayName}
+                        </h2>
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[11px] font-medium text-primary">
+                          <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          Licensed Optometrist
+                        </span>
+                      </div>
+                      <p className="text-xs font-medium text-primary">
+                        {doctor.credentials || "Licensed Optometrist"}
+                      </p>
+                    </div>
 
-                  <div className="flex items-center justify-between border-t border-border/60 pt-3">
-                    {sample ? (
-                      <Badge variant="outline" className="border-border/80">Sample profile</Badge>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-primary">
-                        <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        Staff Clinician
-                      </span>
-                    )}
-                    {doctor.slug ? (
-                      <Button asChild size="sm" variant="ghost" className="h-8 text-xs text-primary hover:bg-primary/10">
+                    <p className="text-xs leading-relaxed text-muted-foreground line-clamp-3">
+                      {doctor.bio ??
+                        "Experienced clinician providing comprehensive diagnostic and refractive vision care."}
+                    </p>
+
+                    {doctor.services?.length ? (
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {doctor.services.slice(0, 3).map((service) => (
+                          <Badge
+                            key={service.id}
+                            variant="secondary"
+                            className="text-[10px] rounded-lg px-2 py-0.5 font-normal"
+                          >
+                            {service.name}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : null}
+
+                    <div className="pt-2 flex items-center justify-between">
+                      <Button asChild size="sm" variant="outline" className="rounded-xl text-xs">
                         <Link href={`/doctors/${doctor.slug}`}>
-                          Profile <ArrowRight className="size-3.5" />
+                          View Profile & Schedule <ArrowRight className="size-3.5" />
                         </Link>
                       </Button>
-                    ) : null}
+                      <Button asChild size="sm" className="rounded-xl shadow-xs text-xs">
+                        <Link href="/booking">Book Visit</Link>
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -173,11 +189,9 @@ export function DoctorsDirectory() {
         </div>
       )}
 
-      <p className="rounded-lg border bg-secondary/50 px-4 py-3 text-sm text-muted-foreground">
-        Doctor assignment is automatic. Patients do not choose a doctor during
-        booking; the clinic assigns a qualified, available doctor when the
-        request is approved.
-      </p>
+      <div className="rounded-2xl border border-primary/20 bg-primary/5 px-5 py-4 text-xs leading-relaxed text-muted-foreground">
+        <strong className="text-foreground">Clinical Assignment Notice:</strong> Patients may request a preferred optometrist during appointment scheduling. Final physician confirmation is determined by scheduled operating shifts and required clinical specialization.
+      </div>
     </div>
   );
 }

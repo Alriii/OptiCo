@@ -13,8 +13,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { usePageMeta } from "@/lib/use-page-meta";
 
 export default function PatientProfilePage() {
+  usePageMeta({
+    title: "Patient Profile",
+    description: "Update your personal and contact details for OptiCo clinic records.",
+  });
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [profileId, setProfileId] = useState<string | null>(null);

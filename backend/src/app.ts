@@ -28,7 +28,8 @@ app.use(
       const clean = origin.replace(/\/$/, "");
       if (
         ENV.FRONTEND_ORIGINS.includes(clean) ||
-        /^https:\/\/opti-co(-[a-z0-9-]+)?\.vercel\.app$/.test(clean)
+        /^https:\/\/opti-co(-[a-z0-9-]+)?\.vercel\.app$/.test(clean) ||
+        (!ENV.IS_PRODUCTION && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(clean))
       ) {
         callback(null, true);
         return;

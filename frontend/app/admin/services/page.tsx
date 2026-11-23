@@ -24,6 +24,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { usePageMeta } from "@/lib/use-page-meta";
 
 const EMPTY: ServiceFormInput = {
   name: "",
@@ -38,6 +39,11 @@ const EMPTY: ServiceFormInput = {
 };
 
 export default function AdminServicesPage() {
+  usePageMeta({
+    title: "Service Catalog",
+    description: "Manage clinical services, durations, and standard fees.",
+  });
+
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -332,7 +338,7 @@ export default function AdminServicesPage() {
                 </Button>
               ) : null}
               <FieldDescription className="self-center">
-                Fees are demo values until the clinic confirms them.
+                All configured fees apply to online bookings and cashiering.
               </FieldDescription>
             </div>
           </form>

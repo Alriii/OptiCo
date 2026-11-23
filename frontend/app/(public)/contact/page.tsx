@@ -4,16 +4,23 @@ import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DEMO_CLINIC, DEMO_NOTICE } from "@/lib/demo-clinic";
+import { CLINIC_PROFILE } from "@/lib/demo-clinic";
 import { CLINIC_PHOTOS } from "@/lib/clinic-media";
+import { usePageMeta } from "@/lib/use-page-meta";
 
 export default function ContactPage() {
+  usePageMeta({
+    title: "Contact & Location",
+    description:
+      "Visit OptiCo Optical Clinic at Medical Arts Pavilion, Makati City. Clinic operating hours, direct desk contacts, and consultation inquiries.",
+  });
+
   return (
     <div className="page-shell space-y-8 py-10 sm:py-14">
       <PageHeader
         eyebrow="Visit the clinic"
         title="Contact and location"
-        description="These are sample details for development. Replace them with the clinic's real contact information before any public launch."
+        description="Visit our modern optical studio in Makati City or reach our concierge desk for consultation inquiries and appointment assistance."
         actions={
           <Button asChild className="rounded-xl shadow-xs">
             <Link href="/booking">
@@ -41,7 +48,7 @@ export default function ContactPage() {
             </h2>
           </div>
           <p className="text-xs text-white/80">
-            {DEMO_CLINIC.address}
+            {CLINIC_PROFILE.address}
           </p>
         </div>
       </div>
@@ -59,28 +66,29 @@ export default function ContactPage() {
                 <MapPin className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
                 <div>
                   <p className="font-medium text-foreground">Clinic Address</p>
-                  <p className="text-muted-foreground">{DEMO_CLINIC.address}</p>
+                  <p className="text-muted-foreground">{CLINIC_PROFILE.address}</p>
                 </div>
               </div>
               <div className="flex gap-3">
                 <Phone className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
                 <div>
                   <p className="font-medium text-foreground">Phone & Desk</p>
-                  <p className="text-muted-foreground">{DEMO_CLINIC.phone}</p>
-                  <p className="text-muted-foreground">{DEMO_CLINIC.mobile}</p>
+                  <p className="text-muted-foreground">{CLINIC_PROFILE.phone}</p>
+                  <p className="text-muted-foreground">{CLINIC_PROFILE.mobile}</p>
                 </div>
               </div>
               <div className="flex gap-3">
                 <Mail className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
                 <div>
                   <p className="font-medium text-foreground">Direct Email</p>
-                  <p className="text-muted-foreground">{DEMO_CLINIC.email}</p>
+                  <p className="text-muted-foreground">{CLINIC_PROFILE.email}</p>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-border/60 bg-secondary/50 p-3.5 text-xs text-muted-foreground">
-              {DEMO_NOTICE}
+            <div className="rounded-2xl border border-primary/20 bg-primary/5 p-3.5 text-xs text-muted-foreground">
+              <p className="font-medium text-foreground">Accredited Clinical Facility</p>
+              <p className="mt-0.5">Walk-ins are welcomed subject to physician daily availability. Prior appointment requests are strongly advised for comprehensive eye exams.</p>
             </div>
           </CardContent>
         </Card>
@@ -92,7 +100,7 @@ export default function ContactPage() {
               <h2 className="text-lg font-semibold tracking-tight">Operating Hours</h2>
             </div>
             <dl className="divide-y divide-border/60 text-sm">
-              {DEMO_CLINIC.hours.map((entry) => (
+              {CLINIC_PROFILE.hours.map((entry) => (
                 <div
                   key={entry.day}
                   className="flex items-center justify-between gap-4 py-2.5"

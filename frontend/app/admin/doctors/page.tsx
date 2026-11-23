@@ -31,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { usePageMeta } from "@/lib/use-page-meta";
 
 const EMPTY: DoctorFormInput = {
   name: "",
@@ -43,6 +44,11 @@ const EMPTY: DoctorFormInput = {
 };
 
 export default function AdminDoctorsPage() {
+  usePageMeta({
+    title: "Doctor Management",
+    description: "Manage optometrist roster, specialties, and service assignments.",
+  });
+
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
@@ -276,7 +282,7 @@ export default function AdminDoctorsPage() {
                   <FieldLabel htmlFor="doctor-slug">Public slug</FieldLabel>
                   <Input
                     id="doctor-slug"
-                    placeholder="dr-sample-santos"
+                    placeholder="dr-elena-reyes"
                     aria-invalid={Boolean(form.formState.errors.slug)}
                     {...form.register("slug")}
                   />

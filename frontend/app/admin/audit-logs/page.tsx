@@ -16,8 +16,13 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
+import { usePageMeta } from "@/lib/use-page-meta";
 
 export default function AdminAuditLogsPage() {
+  usePageMeta({
+    title: "Audit Logs",
+    description: "Review security, clinical, and administrative audit trails.",
+  });
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [total, setTotal] = useState<number | undefined>();
   const [action, setAction] = useState("");

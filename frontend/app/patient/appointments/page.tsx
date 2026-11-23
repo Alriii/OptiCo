@@ -13,6 +13,7 @@ import { PatientAppointmentActions } from "@/components/portal/patient-appointme
 import { LoadingState } from "@/components/shared/loading-state";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
+import { usePageMeta } from "@/lib/use-page-meta";
 
 const ACTIVE = new Set(["PENDING", "CONFIRMED", "CHECKED_IN", "IN_PROGRESS"]);
 
@@ -22,6 +23,11 @@ function sortTime(appointment: Appointment) {
 }
 
 export default function PatientAppointmentsPage() {
+  usePageMeta({
+    title: "My Appointments",
+    description: "View and manage your OptiCo optical consultations and bookings.",
+  });
+
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

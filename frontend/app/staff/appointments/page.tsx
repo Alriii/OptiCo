@@ -2,8 +2,14 @@
 
 import { PageHeader } from "@/components/shared/page-header";
 import { StaffAppointments } from "@/components/portal/staff-appointments";
+import { usePageMeta } from "@/lib/use-page-meta";
 
 export default function StaffAppointmentsPage() {
+  usePageMeta({
+    title: "Clinic Appointments",
+    description: "Comprehensive appointment schedule and status triage for clinic staff.",
+  });
+
   return (
     <div className="space-y-6">
       <PageHeader

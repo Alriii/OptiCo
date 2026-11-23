@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { usePageMeta } from "@/lib/use-page-meta";
 
 interface WalkInFormState {
   fullName: string;
@@ -50,6 +51,11 @@ const EMPTY_FORM: WalkInFormState = {
 };
 
 export default function StaffWalkInsPage() {
+  usePageMeta({
+    title: "Walk-in Queue",
+    description: "Queue walk-in patients and manage real-time clinic arrivals.",
+  });
+
   const [date, setDate] = useState(todayInClinic());
   const [walkIns, setWalkIns] = useState<WalkIn[]>([]);
   const [services, setServices] = useState<Service[]>([]);

@@ -2,8 +2,14 @@
 
 import { PageHeader } from "@/components/shared/page-header";
 import { DoctorSchedule } from "@/components/portal/doctor-schedule";
+import { usePageMeta } from "@/lib/use-page-meta";
 
 export default function DoctorSchedulePage() {
+  usePageMeta({
+    title: "Assigned Schedule",
+    description: "Confirmed patient consultations and schedule calendar for OptiCo optometrists.",
+  });
+
   return (
     <div className="space-y-6">
       <PageHeader

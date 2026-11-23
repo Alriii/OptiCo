@@ -19,6 +19,7 @@ import { StatCard } from "@/components/shared/stat-card";
 import { LoadingState } from "@/components/shared/loading-state";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { usePageMeta } from "@/lib/use-page-meta";
 
 const QUICK_LINKS = [
   { href: "/admin/doctors", label: "Doctors and services" },
@@ -33,6 +34,11 @@ export default function AdminOverviewPage() {
   const [overview, setOverview] = useState<AdminOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  usePageMeta({
+    title: "Admin Portal",
+    description: "OptiCo administrative overview, clinic settings, and audit logs.",
+  });
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -56,7 +62,7 @@ export default function AdminOverviewPage() {
       <PageHeader
         eyebrow="Administrator"
         title="Clinic overview"
-        description="Operational counts, configuration shortcuts, and the audit trail. Demo data only until the clinic profile is finalized."
+        description="Operational counts, configuration shortcuts, and system audit trail."
         actions={
           <Button type="button" variant="outline" onClick={load} disabled={loading}>
             <RefreshCw className="size-4" /> Refresh

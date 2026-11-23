@@ -13,8 +13,14 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { usePageMeta } from "@/lib/use-page-meta";
 
 export default function DoctorAvailabilityPage() {
+  usePageMeta({
+    title: "Doctor Availability",
+    description: "Manage your weekly consultation slots and clinical availability.",
+  });
+
   const [days, setDays] = useState<DoctorAvailability[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

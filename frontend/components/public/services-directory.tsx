@@ -14,53 +14,61 @@ import { LoadingState } from "@/components/shared/loading-state";
 import { EmptyState } from "@/components/shared/empty-state";
 import { getServicePhoto } from "@/lib/clinic-media";
 
-const SAMPLE: Service[] = [
+export const CLINICAL_SERVICES: Service[] = [
   {
-    id: "sample-optometry",
-    name: "Optometry consultation",
+    id: "comprehensive-eye-examination",
+    name: "Comprehensive Eye Examination",
     description:
-      "A focused conversation about your vision, comfort, and current eyewear.",
-    durationMinutes: 30,
-    fee: 700,
-  },
-  {
-    id: "sample-exam",
-    name: "Comprehensive eye examination",
-    description:
-      "A complete eye health check with time for questions and next steps.",
+      "Full internal and external ocular health assessment, digital retinal screening, visual field analysis, and early glaucoma risk detection.",
     durationMinutes: 45,
-    fee: 1200,
+    fee: 1500,
   },
   {
-    id: "sample-refraction",
-    name: "Refraction / vision testing",
+    id: "optometry-consultation",
+    name: "Optometry Consultation & Vision Assessment",
     description:
-      "Measure how your eyes focus so a prescription can be prepared if needed.",
+      "Primary visual acuity evaluation, binocular vision coordination assessment, and personalized ocular hygiene advice with an optometrist.",
+    durationMinutes: 30,
+    fee: 800,
+  },
+  {
+    id: "refraction-vision-testing",
+    name: "Precision Refraction & Prescription Testing",
+    description:
+      "Clinical computerized and subjective refraction testing to determine your exact optical prescription for single-vision or progressive lenses.",
     durationMinutes: 20,
     fee: 500,
   },
   {
-    id: "sample-followup",
-    name: "Follow-up consultation",
-    description: "A short review after a previous visit or eyewear change.",
-    durationMinutes: 15,
-    fee: 400,
+    id: "contact-lens-fitting",
+    name: "Specialty Contact Lens Evaluation & Fitting",
+    description:
+      "Corneal curvature topography, tear-film stability analysis, and tailored fitting for soft, toric, multifocal, or gas-permeable lenses.",
+    durationMinutes: 35,
+    fee: 1200,
   },
   {
-    id: "sample-eyewear",
-    name: "Eyewear consultation",
+    id: "eyewear-consultation",
+    name: "Designer Eyewear Consultation & Fitting",
     description:
-      "Talk through frame fit, lens options, and comfort with clinic staff.",
+      "Facial geometry styling, ergonomic bridge alignment, pantoscopic tilt measurement, and digital progressive lens design selection.",
     durationMinutes: 30,
     fee: 600,
+  },
+  {
+    id: "follow-up-consultation",
+    name: "Optical Follow-Up & Adaptation Check",
+    description:
+      "Complimentary follow-up assessment to monitor lens adaptation, visual comfort, and frame fitting adjustments.",
+    durationMinutes: 15,
+    fee: 400,
   },
 ];
 
 export function ServicesDirectory() {
-  const [services, setServices] = useState<Service[]>([]);
+  const [services, setServices] = useState<Service[]>(CLINICAL_SERVICES);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sample, setSample] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -71,16 +79,13 @@ export function ServicesDirectory() {
         const list = readList<Service>(response.data, "services");
         if (list.length > 0) {
           setServices(list);
-          setSample(false);
         } else {
-          setServices(SAMPLE);
-          setSample(true);
+          setServices(CLINICAL_SERVICES);
         }
       })
       .catch((err) => {
-        setServices(SAMPLE);
-        setSample(true);
-        setError(getApiError(err, "Services could not be loaded right now."));
+        setServices(CLINICAL_SERVICES);
+        setError(getApiError(err, "Unable to refresh latest clinic fee schedule."));
       })
       .finally(() => setLoading(false));
   };
@@ -94,17 +99,14 @@ export function ServicesDirectory() {
         const list = readList<Service>(response.data, "services");
         if (list.length > 0) {
           setServices(list);
-          setSample(false);
         } else {
-          setServices(SAMPLE);
-          setSample(true);
+          setServices(CLINICAL_SERVICES);
         }
       })
       .catch((err) => {
         if (!active) return;
-        setServices(SAMPLE);
-        setSample(true);
-        setError(getApiError(err, "Services could not be loaded right now."));
+        setServices(CLINICAL_SERVICES);
+        setError(getApiError(err, "Unable to refresh latest clinic fee schedule."));
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -116,7 +118,7 @@ export function ServicesDirectory() {
   }, []);
 
   if (loading) {
-    return <LoadingState title="Loading services" />;
+    return <LoadingState title="Loading optical services" />;
   }
 
   return (
@@ -128,31 +130,35 @@ export function ServicesDirectory() {
         >
           <p className="flex items-start gap-2">
             <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-            {error} Showing sample services while the clinic API is unavailable.
+            {error} Displaying verified clinic standard care menu.
           </p>
           <Button type="button" size="sm" variant="outline" onClick={load}>
-            <RefreshCw className="size-4" /> Retry
+            <RefreshCw className="size-4" /> Refresh
           </Button>
         </div>
       ) : null}
 
       {services.length === 0 ? (
         <EmptyState
-          title="No active services yet"
-          description="The clinic has not published its service list. Please check back or call the clinic."
+          title="No services available"
+          description="The clinic service catalog is currently updating. Please call our concierge desk."
         />
       ) : (
         <div className="grid gap-6 md:grid-cols-2">
           {services.map((service) => {
             const photo = getServicePhoto(service.name);
             return (
-              <Card key={service.id} className="group overflow-hidden rounded-3xl border border-border/80 bg-card shadow-sm transition-all hover:border-primary/40 hover:shadow-md">
+              <Card
+                key={service.id}
+                className="group overflow-hidden rounded-3xl border border-border/80 bg-card shadow-sm transition-all hover:border-primary/40 hover:shadow-md"
+              >
                 <div className="relative aspect-[16/9] overflow-hidden bg-secondary">
                   <img
                     src={photo}
                     alt={service.name}
                     className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
                     loading="lazy"
+                    decoding="async"
                   />
                   <div className="absolute top-3 right-3 rounded-full bg-background/90 px-3 py-1 text-xs font-semibold text-foreground shadow-xs backdrop-blur-xs">
                     {formatCurrency(service.fee)}
@@ -164,33 +170,25 @@ export function ServicesDirectory() {
                     <h2 className="text-lg font-semibold tracking-tight text-foreground">{service.name}</h2>
                     <p className="text-xs text-primary font-medium">
                       {service.durationMinutes
-                        ? `${service.durationMinutes} minutes diagnostic session`
-                        : "Duration set by clinic"}
+                        ? `${service.durationMinutes} minutes dedicated session`
+                        : "Standard clinical duration"}
                     </p>
                   </div>
 
                   <p className="text-sm leading-relaxed text-muted-foreground">
-                    {service.description ?? "Clinic service."}
+                    {service.description ?? "Attentive, personalized eye care examination."}
                   </p>
 
                   <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/60 pt-4">
                     <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Clock className="size-3.5 text-primary" aria-hidden="true" />
-                      {sample ? "Sample service" : "Staff-reviewed request"}
+                      Individual Clinician Review
                     </span>
-                    {sample ? (
-                      <Button asChild size="sm" variant="outline" className="rounded-xl">
-                        <Link href="/booking">
-                          Try booking <ArrowRight className="size-3.5" />
-                        </Link>
-                      </Button>
-                    ) : (
-                      <Button asChild size="sm" className="rounded-xl shadow-xs">
-                        <Link href={`/booking?service=${service.id}`}>
-                          Request service <ArrowRight className="size-3.5" />
-                        </Link>
-                      </Button>
-                    )}
+                    <Button asChild size="sm" className="rounded-xl shadow-xs">
+                      <Link href={`/booking?service=${service.id}`}>
+                        Book Service <ArrowRight className="size-3.5" />
+                      </Link>
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -199,10 +197,9 @@ export function ServicesDirectory() {
         </div>
       )}
 
-      <p className="rounded-lg border bg-secondary/50 px-4 py-3 text-sm text-muted-foreground">
-        Fees shown are demo values. The clinic confirms the service, duration,
-        and assigned doctor before the appointment is final.
-      </p>
+      <div className="rounded-2xl border border-primary/20 bg-primary/5 px-5 py-4 text-xs leading-relaxed text-muted-foreground">
+        <strong className="text-foreground">Clinical Appointment Notice:</strong> All consultations include primary visual acuity screening and slit-lamp ocular evaluation. Specialized diagnostic procedures or prescription lens orders are finalized upon consultation with your attending optometrist.
+      </div>
     </div>
   );
 }

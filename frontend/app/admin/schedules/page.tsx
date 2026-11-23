@@ -35,6 +35,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { usePageMeta } from "@/lib/use-page-meta";
 
 type Tab = "hours" | "closures" | "availability";
 
@@ -81,6 +82,11 @@ function normalizeAvailability(days: DoctorAvailability[]): AvailabilityRow[] {
 }
 
 export default function AdminSchedulesPage() {
+  usePageMeta({
+    title: "Clinic Schedules",
+    description: "Configure clinic operating hours, shifts, and holiday closures.",
+  });
+
   const [tab, setTab] = useState<Tab>("hours");
 
   const [hours, setHours] = useState<HourRow[]>(normalizeHours([]));

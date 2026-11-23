@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { usePageMeta } from "@/lib/use-page-meta";
 
 const METHODS: { value: PaymentMethod; label: string }[] = [
   { value: "CASH", label: "Cash" },
@@ -42,6 +43,11 @@ const PAYABLE_STATUSES = new Set([
 ]);
 
 export default function StaffPaymentsPage() {
+  usePageMeta({
+    title: "Cashiering & Payments",
+    description: "Log payments and issue receipts for completed appointments.",
+  });
+
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [selectedId, setSelectedId] = useState("");
   const [payments, setPayments] = useState<Payment[]>([]);

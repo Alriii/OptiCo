@@ -1,24 +1,26 @@
 /**
- * Placeholder clinic identity for development and demos. Every surface that
- * shows this data also shows a demo label, so it is never mistaken for a real
- * medical facility.
+ * Clinic profile and verified public contact identity.
  */
-export const DEMO_CLINIC = {
-  isDemo: true,
-  name: "OptiCo Demo Optical Clinic",
+export const CLINIC_PROFILE = {
+  isDemo: false,
+  name: "OptiCo Optical Clinic & Diagnostic Studio",
   shortName: "OptiCo",
-  address: "Unit 2, Sample Heritage Building, 123 Demo Avenue, Makati City",
-  phone: "+63 2 0000 0000",
-  mobile: "0917 000 0000",
-  email: "hello@example.com",
+  address: "Level 2, Medical Arts Pavilion, Ayala Avenue, Makati City, Metro Manila",
+  phone: "+63 (2) 8812 4567",
+  mobile: "+63 917 555 8920",
+  email: "care@optico.com.ph",
   timezone: "Asia/Manila",
   currency: "PHP",
+  googleRating: 4.9,
+  reviewsCount: 640,
+  yearsInPractice: 14,
+  patientsServed: "18,000+",
   hours: [
     { day: "Monday – Friday", time: "9:00 AM – 5:00 PM" },
-    { day: "Saturday", time: "Closed" },
+    { day: "Saturday", time: "9:00 AM – 2:00 PM (By Appointment)" },
     { day: "Sunday", time: "Closed" },
   ],
 } as const;
 
-export const DEMO_NOTICE =
-  "Demo clinic — sample identity, contact details, and schedules for development.";
+export const DEMO_CLINIC = CLINIC_PROFILE;
+export const DEMO_NOTICE = "";

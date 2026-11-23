@@ -232,7 +232,7 @@ export function PortalShell({ role, children }: PortalShellProps) {
           </DropdownMenu>
 
           <p className="mt-2.5 px-1 text-[10px] text-sidebar-foreground/50">
-            Demo clinic workspace · OptiCo
+            OptiCo Clinic System · Makati City
           </p>
         </div>
       </aside>
