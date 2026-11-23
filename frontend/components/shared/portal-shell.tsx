@@ -134,22 +134,6 @@ export function PortalShell({ role, children }: PortalShellProps) {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator className="my-1" />
-                  {role === "PATIENT" && (
-                    <DropdownMenuItem asChild>
-                      <Link href="/patient/profile" className="flex items-center gap-2 cursor-pointer">
-                        <UserRound className="size-4" />
-                        <span>Profile & Details</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
-                  {role === "ADMIN" && (
-                    <DropdownMenuItem asChild>
-                      <Link href="/admin/settings" className="flex items-center gap-2 cursor-pointer">
-                        <Settings className="size-4" />
-                        <span>Clinic Settings</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
                   <DropdownMenuItem
                     variant="destructive"
                     onClick={logout}
@@ -236,22 +220,6 @@ export function PortalShell({ role, children }: PortalShellProps) {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator className="my-1" />
-              {role === "PATIENT" && (
-                <DropdownMenuItem asChild>
-                  <Link href="/patient/profile" className="flex items-center gap-2 cursor-pointer">
-                    <UserRound className="size-4" />
-                    <span>Profile & details</span>
-                  </Link>
-                </DropdownMenuItem>
-              )}
-              {role === "ADMIN" && (
-                <DropdownMenuItem asChild>
-                  <Link href="/admin/settings" className="flex items-center gap-2 cursor-pointer">
-                    <Settings className="size-4" />
-                    <span>Clinic settings</span>
-                  </Link>
-                </DropdownMenuItem>
-              )}
               <DropdownMenuItem
                 variant="destructive"
                 onClick={logout}
