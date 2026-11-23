@@ -13,13 +13,20 @@ function bearerToken(req: Request): string | undefined {
 
 function originAllowed(req: Request): boolean {
   const origin = req.get("origin");
-  if (origin && !ENV.FRONTEND_ORIGINS.includes(origin.replace(/\/$/, ""))) return false;
+  if (origin) {
+    const cleanOrigin = origin.replace(/\/$/, "");
+    if (ENV.FRONTEND_ORIGINS.includes(cleanOrigin)) return true;
+    if (/^https:\/\/opti-co(-[a-z0-9-]+)?\.vercel\.app$/.test(cleanOrigin)) return true;
+    return false;
+  }
 
   const referer = req.get("referer");
   if (!origin && referer) {
     try {
       const refererOrigin = new URL(referer).origin;
-      if (!ENV.FRONTEND_ORIGINS.includes(refererOrigin)) return false;
+      if (ENV.FRONTEND_ORIGINS.includes(refererOrigin)) return true;
+      if (/^https:\/\/opti-co(-[a-z0-9-]+)?\.vercel\.app$/.test(refererOrigin)) return true;
+      return false;
     } catch {
       return false;
     }

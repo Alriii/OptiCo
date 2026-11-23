@@ -21,7 +21,15 @@ app.use(helmet());
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || ENV.FRONTEND_ORIGINS.includes(origin.replace(/\/$/, ""))) {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      const clean = origin.replace(/\/$/, "");
+      if (
+        ENV.FRONTEND_ORIGINS.includes(clean) ||
+        /^https:\/\/opti-co(-[a-z0-9-]+)?\.vercel\.app$/.test(clean)
+      ) {
         callback(null, true);
         return;
       }

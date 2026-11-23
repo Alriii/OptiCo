@@ -60,10 +60,18 @@ if (isProduction) {
   }
 }
 
-const frontendOrigins = (raw.FRONTEND_ORIGINS ?? raw.FRONTEND_URL)
+const defaultOrigins = [
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "https://opti-co.vercel.app",
+];
+
+const configuredOrigins = (raw.FRONTEND_ORIGINS ?? raw.FRONTEND_URL)
   .split(",")
   .map((origin) => origin.trim().replace(/\/$/, ""))
   .filter(Boolean);
+
+const frontendOrigins = Array.from(new Set([...defaultOrigins, ...configuredOrigins]));
 
 export const ENV = {
   ...raw,
