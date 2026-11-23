@@ -40,26 +40,14 @@ export function AcceptInviteForm({ token }: { token?: string }) {
   };
 
   return (
-    <div className="w-full rounded-3xl border border-border/80 bg-card/95 p-7 sm:p-9 shadow-sm sm:shadow-xl sm:shadow-primary/[0.04] backdrop-blur-xs transition-all">
-      {/* Brand & Mascot Header */}
-      <div className="mb-6 flex flex-col items-center text-center">
-        <div className="relative mb-3 group">
-          <div className="absolute -inset-1 rounded-2xl bg-gradient-to-tr from-emerald-500/20 via-teal-400/20 to-primary/20 blur-sm transition-all duration-300 group-hover:blur-md" />
-          <img
-            src="/mascot.jpg"
-            alt="Dr. Octo - OptiCo Mascot"
-            className="relative size-16 rounded-2xl object-cover ring-2 ring-primary/15 shadow-sm transition-transform duration-300 group-hover:scale-105"
-          />
-          <span className="absolute -bottom-1 -right-1 flex size-5 items-center justify-center rounded-full bg-emerald-600 text-[10px] text-white shadow-xs">
-            ✦
-          </span>
-        </div>
-
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          Accept your invitation
+    <div className="w-full rounded-3xl border border-border/80 bg-card/95 p-8 sm:p-10 shadow-sm sm:shadow-xl sm:shadow-primary/[0.04] backdrop-blur-xs transition-all">
+      {/* Clean Minimalist Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+          Accept invitation
         </h1>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Set a secure password for your staff or doctor clinic account
+        <p className="mt-1.5 text-xs sm:text-sm text-muted-foreground">
+          Set a secure password for your clinic staff account
         </p>
       </div>
 

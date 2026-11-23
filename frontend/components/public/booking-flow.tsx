@@ -32,6 +32,7 @@ import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/c
 import { LoadingState } from "@/components/shared/loading-state";
 import { EmptyState } from "@/components/shared/empty-state";
 import { cn } from "@/lib/utils";
+import { getServicePhoto } from "@/lib/clinic-media";
 
 const STEPS = ["Service", "Date", "Time", "Details", "Review"] as const;
 
@@ -399,9 +400,10 @@ export function BookingFlow({ initialServiceId }: { initialServiceId?: string })
               description="The clinic has not published any bookable services yet."
             />
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-2">
               {services.map((service) => {
                 const selected = selectedService?.id === service.id;
+                const photo = getServicePhoto(service.name);
                 return (
                   <button
                     key={service.id}
@@ -412,23 +414,31 @@ export function BookingFlow({ initialServiceId }: { initialServiceId?: string })
                     }}
                     aria-pressed={selected}
                     className={cn(
-                      "rounded-xl border bg-card p-4 text-left transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                      selected && "border-primary ring-1 ring-primary",
+                      "group overflow-hidden rounded-2xl border border-border/80 bg-card text-left transition-all hover:border-primary/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      selected && "border-primary ring-2 ring-primary/40 shadow-sm",
                     )}
                   >
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="font-medium">{service.name}</span>
-                      <span className="text-sm font-medium">
+                    <div className="relative aspect-[16/9] overflow-hidden bg-secondary">
+                      <img
+                        src={photo}
+                        alt={service.name}
+                        className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        loading="lazy"
+                      />
+                      <div className="absolute top-2.5 right-2.5 rounded-full bg-background/90 px-2.5 py-1 text-xs font-semibold text-foreground backdrop-blur-xs shadow-xs">
                         {formatCurrency(service.fee)}
-                      </span>
+                      </div>
                     </div>
-                    <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-                      {service.description ?? "Clinic service."}
-                    </p>
-                    <p className="mt-2 inline-flex items-center gap-1 text-xs text-muted-foreground">
-                      <Clock className="size-3.5" aria-hidden="true" />
-                      {service.durationMinutes ?? "—"} minutes
-                    </p>
+                    <div className="p-4 space-y-1.5">
+                      <span className="block font-semibold text-foreground tracking-tight">{service.name}</span>
+                      <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                        {service.description ?? "Clinic service."}
+                      </p>
+                      <p className="inline-flex items-center gap-1.5 text-xs text-primary font-medium pt-1">
+                        <Clock className="size-3.5" aria-hidden="true" />
+                        {service.durationMinutes ? `${service.durationMinutes} min session` : "Clinic duration"}
+                      </p>
+                    </div>
                   </button>
                 );
               })}

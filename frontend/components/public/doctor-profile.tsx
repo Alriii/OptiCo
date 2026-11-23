@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AlertCircle, ArrowLeft, CalendarCheck, Stethoscope } from "lucide-react";
+import { AlertCircle, ArrowLeft, CalendarCheck } from "lucide-react";
 import { publicService } from "@/services/public.service";
 import { getApiError } from "@/lib/api-error";
 import type { Doctor } from "@/services/types";
@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LoadingState } from "@/components/shared/loading-state";
 import { EmptyState } from "@/components/shared/empty-state";
+import { getDoctorPhoto } from "@/lib/clinic-media";
 
 const SAMPLE: Doctor[] = [
   {
@@ -111,21 +112,31 @@ export function DoctorProfile({ slug }: { slug: string }) {
         </div>
       ) : null}
 
-      <Card className="overflow-hidden">
-        <CardContent className="grid gap-6 px-6 py-7 sm:grid-cols-[auto_1fr] sm:items-start">
-          <span className="flex size-20 items-center justify-center rounded-full bg-primary text-primary-foreground">
-            <Stethoscope className="size-8" aria-hidden="true" />
-          </span>
-          <div className="space-y-4">
-            <div className="space-y-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-2xl font-semibold tracking-tight">
+      <Card className="overflow-hidden rounded-3xl border border-border/80 shadow-sm">
+        <CardContent className="grid gap-8 p-6 sm:p-8 md:grid-cols-[auto_1fr] md:items-start">
+          <div className="relative size-32 sm:size-40 shrink-0 overflow-hidden rounded-3xl bg-secondary shadow-md ring-2 ring-primary/20">
+            <img
+              src={getDoctorPhoto(doctor.displayName)}
+              alt={doctor.displayName}
+              className="size-full object-cover"
+            />
+          </div>
+
+          <div className="space-y-5">
+            <div className="space-y-1.5">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
                   {doctor.displayName}
                 </h1>
-                {sample ? <Badge variant="outline">Sample profile</Badge> : null}
+                {sample ? <Badge variant="outline">Sample profile</Badge> : (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[11px] font-medium text-primary">
+                    <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    Verified Clinician
+                  </span>
+                )}
               </div>
-              <p className="text-sm text-muted-foreground">
-                {doctor.credentials || "Clinic doctor"}
+              <p className="text-sm font-medium text-primary">
+                {doctor.credentials || "Licensed Optometrist"}
               </p>
             </div>
 
@@ -136,10 +147,10 @@ export function DoctorProfile({ slug }: { slug: string }) {
 
             {doctor.services?.length ? (
               <div className="space-y-2">
-                <p className="text-sm font-medium">Services</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Offered Services</p>
                 <div className="flex flex-wrap gap-2">
                   {doctor.services.map((service) => (
-                    <Badge key={service.id} variant="secondary">
+                    <Badge key={service.id} variant="secondary" className="rounded-xl px-2.5 py-1 text-xs">
                       {service.name}
                     </Badge>
                   ))}
@@ -147,11 +158,13 @@ export function DoctorProfile({ slug }: { slug: string }) {
               </div>
             ) : null}
 
-            <Button asChild>
-              <Link href="/booking">
-                <CalendarCheck className="size-4" /> Request an appointment
-              </Link>
-            </Button>
+            <div className="pt-2">
+              <Button asChild size="lg" className="rounded-xl shadow-xs">
+                <Link href="/booking">
+                  <CalendarCheck className="size-4" /> Request an appointment
+                </Link>
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

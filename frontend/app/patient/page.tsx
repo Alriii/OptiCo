@@ -74,6 +74,30 @@ export default function PatientDashboardPage() {
         }
       />
 
+      {/* Dr. Octo Care Pill Banner */}
+      <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-r from-primary/10 via-background to-secondary/30 p-6 sm:p-7 shadow-xs">
+        <div className="flex flex-col-reverse sm:flex-row items-start sm:items-center justify-between gap-6">
+          <div className="space-y-2 max-w-xl">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">
+              ✦ Dr. Octo Vision Health Tip
+            </span>
+            <h3 className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
+              Practicing the 20-20-20 Screen Rule
+            </h3>
+            <p className="text-xs sm:text-sm leading-relaxed text-muted-foreground">
+              Every 20 minutes spent staring at screens, look at an object 20 feet away for at least 20 seconds. This relaxes eye accommodation muscles and prevents digital strain before your next checkup.
+            </p>
+          </div>
+          <div className="shrink-0">
+            <img
+              src="/mascot.jpg"
+              alt="Dr. Octo"
+              className="size-16 sm:size-20 rounded-2xl object-cover ring-4 ring-primary/20 shadow-md"
+            />
+          </div>
+        </div>
+      </div>
+
       {error ? (
         <div
           role="alert"
