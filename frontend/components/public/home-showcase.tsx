@@ -2,15 +2,15 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Clock, Eye, Stethoscope } from "lucide-react";
+import { ArrowRight, Clock } from "lucide-react";
 import { publicService } from "@/services/public.service";
 import { readList } from "@/lib/api-shape";
 import { formatCurrency } from "@/lib/format";
 import type { Doctor, Service } from "@/services/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { LoadingState } from "@/components/shared/loading-state";
+import { getServicePhoto, getDoctorPhoto } from "@/lib/clinic-media";
 
 const SAMPLE_SERVICES: Service[] = [
   {
@@ -117,33 +117,46 @@ export function HomeShowcase() {
         {loading ? (
           <LoadingState title="Loading services" className="py-10" />
         ) : (
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
-            {services.map((service) => (
-              <Card key={service.id} className="gap-4 py-5">
-                <CardContent className="space-y-3 px-5">
-                  <span className="flex size-10 items-center justify-center rounded-full bg-secondary text-primary">
-                    <Eye className="size-5" aria-hidden="true" />
-                  </span>
-                  <div className="space-y-1">
-                    <h3 className="font-medium">{service.name}</h3>
-                    <p className="text-sm leading-relaxed text-muted-foreground">
-                      {service.description ?? "Clinic service."}
-                    </p>
+          <div className="mt-8 grid gap-5 md:grid-cols-3">
+            {services.map((service) => {
+              const photo = getServicePhoto(service.name);
+              return (
+                <Card key={service.id} className="group overflow-hidden rounded-3xl border border-border/80 bg-card shadow-sm transition-all hover:shadow-md hover:border-primary/40">
+                  <div className="relative aspect-[16/10] overflow-hidden bg-secondary">
+                    <img
+                      src={photo}
+                      alt={service.name}
+                      className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                    <div className="absolute top-3 right-3 rounded-full bg-background/90 px-3 py-1 text-xs font-semibold text-foreground shadow-xs backdrop-blur-xs">
+                      {service.fee !== undefined ? formatCurrency(service.fee) : "Clinic rate"}
+                    </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                    {service.durationMinutes ? (
-                      <span className="inline-flex items-center gap-1">
-                        <Clock className="size-3.5" aria-hidden="true" />
-                        {service.durationMinutes} min
-                      </span>
-                    ) : null}
-                    {service.fee !== undefined ? (
-                      <span>{formatCurrency(service.fee)}</span>
-                    ) : null}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  <CardContent className="space-y-3 p-5">
+                    <div className="space-y-1">
+                      <h3 className="text-base font-semibold text-foreground tracking-tight">{service.name}</h3>
+                      <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                        {service.description ?? "Personalized optical care."}
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-between border-t border-border/60 pt-3 text-xs text-muted-foreground">
+                      {service.durationMinutes ? (
+                        <span className="inline-flex items-center gap-1">
+                          <Clock className="size-3.5 text-primary" aria-hidden="true" />
+                          {service.durationMinutes} min session
+                        </span>
+                      ) : (
+                        <span>Clinic schedule</span>
+                      )}
+                      <Button asChild size="sm" variant="ghost" className="h-7 text-xs font-medium text-primary hover:bg-primary/10">
+                        <Link href={`/booking?service=${service.id}`}>Book visit →</Link>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
 
@@ -174,37 +187,46 @@ export function HomeShowcase() {
             </Button>
           </div>
 
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {doctors.map((doctor) => (
-              <Card key={doctor.id} className="gap-3 py-5">
-                <CardContent className="space-y-3 px-5">
-                  <div className="flex items-center gap-3">
-                    <span className="flex size-11 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                      <Stethoscope className="size-5" aria-hidden="true" />
-                    </span>
-                    <div>
-                      <h3 className="font-medium">{doctor.displayName}</h3>
-                      <p className="text-xs text-muted-foreground">
-                        {doctor.credentials || "Clinic doctor"}
-                      </p>
+          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {doctors.map((doctor) => {
+              const photo = getDoctorPhoto(doctor.displayName);
+              return (
+                <Card key={doctor.id} className="group overflow-hidden rounded-3xl border border-border/80 bg-card shadow-sm transition-all hover:shadow-md hover:border-primary/40">
+                  <div className="relative aspect-[4/3] overflow-hidden bg-secondary">
+                    <img
+                      src={photo}
+                      alt={doctor.displayName}
+                      className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                    <div className="absolute bottom-3 left-4 right-4 text-white">
+                      <h3 className="text-base font-semibold tracking-tight">{doctor.displayName}</h3>
+                      <p className="text-xs text-white/80">{doctor.credentials || "Clinic Optometrist"}</p>
                     </div>
                   </div>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
-                    {doctor.bio ??
-                      "Public profile details are managed by the clinic administrator."}
-                  </p>
-                  {doctor.slug ? (
-                    <Button asChild size="sm" variant="ghost" className="px-0">
-                      <Link href={`/doctors/${doctor.slug}`}>
-                        View profile <ArrowRight className="size-3.5" />
-                      </Link>
-                    </Button>
-                  ) : (
-                    <Badge variant="outline">Sample profile</Badge>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
+                  <CardContent className="space-y-3 p-5">
+                    <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                      {doctor.bio ??
+                        "Dedicated eye care specialist focusing on patient comfort and diagnostic clarity."}
+                    </p>
+                    <div className="flex items-center justify-between border-t border-border/60 pt-3 text-xs">
+                      <span className="inline-flex items-center gap-1.5 font-medium text-primary text-[11px]">
+                        <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        Available Clinician
+                      </span>
+                      {doctor.slug ? (
+                        <Button asChild size="sm" variant="ghost" className="h-7 px-2 text-xs text-primary hover:bg-primary/10">
+                          <Link href={`/doctors/${doctor.slug}`}>
+                            Profile <ArrowRight className="size-3" />
+                          </Link>
+                        </Button>
+                      ) : null}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </div>
       </section>

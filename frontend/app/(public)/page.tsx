@@ -7,12 +7,14 @@ import {
   MapPin,
   Phone,
   ShieldCheck,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
 import { HomeShowcase } from "@/components/public/home-showcase";
-import { DEMO_CLINIC, DEMO_NOTICE } from "@/lib/demo-clinic";
+import { DEMO_CLINIC } from "@/lib/demo-clinic";
+import { CLINIC_PHOTOS } from "@/lib/clinic-media";
 
 const STEPS = [
   {
@@ -38,109 +40,121 @@ const STEPS = [
 export default function HomePage() {
   return (
     <>
-      <section className="relative overflow-hidden border-b bg-secondary/60">
+      <section className="relative overflow-hidden border-b bg-gradient-to-b from-secondary/40 via-secondary/20 to-background">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full bg-taupe/20 blur-3xl"
-          style={{ backgroundColor: "#b8a48a33" }}
+          className="pointer-events-none absolute -right-24 -top-24 size-80 rounded-full bg-emerald-400/15 blur-3xl"
         />
-        <div className="page-shell grid gap-10 py-14 sm:py-20 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -left-24 top-1/2 size-72 rounded-full bg-teal-400/10 blur-3xl"
+        />
+
+        <div className="page-shell grid gap-10 py-14 sm:py-20 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
           <div className="space-y-6">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="outline" className="border-primary/30 bg-background">
-                Demo clinic
-              </Badge>
-              <span className="text-xs text-muted-foreground">
-                Sample data for development
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-background/90 px-3 py-1 text-xs font-medium text-primary shadow-xs backdrop-blur-xs">
+                <img
+                  src="/mascot.jpg"
+                  alt="Dr. Octo"
+                  className="size-4 rounded-full object-cover ring-1 ring-primary/30"
+                />
+                OptiCo Smart Care
               </span>
+              <Badge variant="outline" className="border-border/80 bg-background/70">
+                Live Clinic System
+              </Badge>
             </div>
 
             <div className="space-y-4">
-              <p className="eyebrow">Optical care, thoughtfully scheduled</p>
-              <h1 className="text-4xl font-semibold leading-[1.08] tracking-tight text-balance sm:text-5xl lg:text-6xl">
+              <p className="eyebrow flex items-center gap-1.5">
+                <Sparkles className="size-3.5 text-primary" />
+                Optical care, thoughtfully scheduled
+              </p>
+              <h1 className="text-4xl font-semibold leading-[1.08] tracking-tight text-balance sm:text-5xl lg:text-6xl text-foreground">
                 Clearer vision.
                 <br />
-                Calmer visits.
+                <span className="bg-gradient-to-r from-primary to-[#289e8f] bg-clip-text text-transparent">
+                  Calmer visits.
+                </span>
               </h1>
               <p className="max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-                Request an eye care appointment, keep track of every update, and
-                let the clinic handle the scheduling details. No account needed
-                for a first request.
+                Request an eye care appointment, track every update, and
+                let our clinic handle the scheduling details. Guided by Dr. Octo
+                and our dedicated optometry team.
               </p>
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <Button asChild size="lg">
+              <Button asChild size="lg" className="rounded-xl shadow-sm">
                 <Link href="/booking">
                   Request an appointment <ArrowRight className="size-4" />
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline">
+              <Button asChild size="lg" variant="outline" className="rounded-xl">
                 <Link href="/services">Explore services</Link>
               </Button>
             </div>
 
-            <p className="max-w-xl rounded-lg border border-border/80 bg-background/70 px-4 py-3 text-sm text-muted-foreground">
+            <p className="max-w-xl rounded-xl border border-border/80 bg-background/80 px-4 py-3 text-xs leading-relaxed text-muted-foreground shadow-xs">
               <strong className="font-medium text-foreground">
                 Appointment request only.
               </strong>{" "}
-              Your schedule is confirmed after clinic approval.
+              Your schedule is reviewed by clinic staff and confirmed with an assigned doctor.
             </p>
           </div>
 
-          <Card className="border-primary/15 bg-background shadow-md">
-            <CardContent className="space-y-5 px-6 py-7">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                    Clinic hours
-                  </p>
-                  <p className="text-lg font-medium">Monday – Friday</p>
+          {/* Hero Visual Card with Clinical Photography */}
+          <div className="space-y-4">
+            <div className="group relative overflow-hidden rounded-3xl border border-border/80 bg-card shadow-lg shadow-primary/[0.04] transition-all">
+              <div className="relative aspect-[16/10] overflow-hidden">
+                <img
+                  src={CLINIC_PHOTOS.hero}
+                  alt="Modern OptiCo clinic interior and eyewear gallery"
+                  className="size-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  loading="eager"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between text-white">
+                  <div>
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/80 px-2.5 py-0.5 text-[11px] font-medium backdrop-blur-xs">
+                      ● Clinic Open Today
+                    </span>
+                    <h3 className="mt-1.5 text-lg font-semibold tracking-tight">
+                      Modern Diagnostic Suite
+                    </h3>
+                  </div>
+                  <p className="text-xs text-white/80">9:00 AM – 5:00 PM</p>
                 </div>
-                <Clock className="size-6 text-primary" aria-hidden="true" />
               </div>
 
-              <div className="rounded-xl bg-secondary px-4 py-3">
-                <p className="text-3xl font-semibold tracking-tight">
-                  9:00 AM – 5:00 PM
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Asia/Manila · weekends closed
-                </p>
-              </div>
-
-              <dl className="space-y-3 text-sm">
-                <div className="flex gap-3">
-                  <MapPin
-                    className="mt-0.5 size-4 shrink-0 text-primary"
-                    aria-hidden="true"
-                  />
-                  <div>
-                    <dt className="font-medium">Demo location</dt>
-                    <dd className="text-muted-foreground">
-                      {DEMO_CLINIC.address}
-                    </dd>
+              <CardContent className="space-y-4 p-5 sm:p-6">
+                <dl className="grid gap-3 text-xs sm:grid-cols-2">
+                  <div className="flex items-start gap-2.5">
+                    <MapPin className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+                    <div>
+                      <dt className="font-medium text-foreground">Clinic Address</dt>
+                      <dd className="text-muted-foreground">{DEMO_CLINIC.address}</dd>
+                    </div>
                   </div>
-                </div>
-                <div className="flex gap-3">
-                  <Phone
-                    className="mt-0.5 size-4 shrink-0 text-primary"
-                    aria-hidden="true"
-                  />
-                  <div>
-                    <dt className="font-medium">Demo contact</dt>
-                    <dd className="text-muted-foreground">
-                      {DEMO_CLINIC.phone}
-                    </dd>
+                  <div className="flex items-start gap-2.5">
+                    <Phone className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+                    <div>
+                      <dt className="font-medium text-foreground">Contact & Desk</dt>
+                      <dd className="text-muted-foreground">{DEMO_CLINIC.phone}</dd>
+                    </div>
                   </div>
-                </div>
-              </dl>
+                </dl>
 
-              <p className="border-t pt-3 text-xs text-muted-foreground">
-                {DEMO_NOTICE}
-              </p>
-            </CardContent>
-          </Card>
+                <div className="flex items-center justify-between border-t border-border/60 pt-3 text-xs text-muted-foreground">
+                  <span className="inline-flex items-center gap-1">
+                    <Clock className="size-3.5 text-primary" /> Mon – Fri, 9:00 AM – 5:00 PM
+                  </span>
+                  <span>Asia/Manila (PHT)</span>
+                </div>
+              </CardContent>
+            </div>
+          </div>
         </div>
       </section>
 

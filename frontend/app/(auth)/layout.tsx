@@ -10,10 +10,10 @@ export default function AuthLayout({
   return (
     <AuthGuard guestOnly>
       <div className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
-        <aside className="relative hidden flex-col justify-between overflow-hidden bg-gradient-to-br from-[#162a24] via-[#1f3b33] to-[#12221d] p-8 text-primary-foreground xl:p-12 lg:flex">
+        <aside className="relative hidden flex-col justify-between overflow-hidden bg-gradient-to-br from-[#0a2722] via-[#0f3832] to-[#071c18] p-8 text-primary-foreground xl:p-12 lg:flex">
           {/* Subtle ambient light rings */}
-          <div className="pointer-events-none absolute -right-20 -top-20 size-96 rounded-full bg-emerald-500/10 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-20 -left-20 size-96 rounded-full bg-teal-500/10 blur-3xl" />
+          <div className="pointer-events-none absolute -right-20 -top-20 size-96 rounded-full bg-[#3ec4b2]/15 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-20 -left-20 size-96 rounded-full bg-[#5ce1cf]/10 blur-3xl" />
 
           {/* Top Logo */}
           <Link href="/" className="relative z-10 flex items-center gap-3">

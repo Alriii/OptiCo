@@ -48,74 +48,74 @@
   --radius-4xl: calc(var(--radius) + 16px);
 }
 
-/* Botanical Premium: forest, cream, taupe, warm white. */
+/* Dr. Octo Aesthetic: Fresh Mint, Clinical Teal, Pure Optic White, and Deep Obsidian */
 :root {
-  --radius: 0.625rem;
-  --background: #fcfbf8;
-  --foreground: #202a27;
+  --radius: 0.75rem;
+  --background: #f6fbf9;
+  --foreground: #102623;
   --card: #ffffff;
-  --card-foreground: #202a27;
+  --card-foreground: #102623;
   --popover: #ffffff;
-  --popover-foreground: #202a27;
-  --primary: #223c35;
-  --primary-foreground: #fcfbf8;
-  --secondary: #f3f0e5;
-  --secondary-foreground: #223c35;
-  --muted: #f3f0e5;
-  --muted-foreground: #5b6661;
-  --accent: #eae4d6;
-  --accent-foreground: #223c35;
-  --destructive: #9b2c2c;
-  --border: #e5e1d8;
-  --input: #d9d3c5;
-  --ring: #3f6b5c;
-  --chart-1: #223c35;
-  --chart-2: #5f7d6c;
-  --chart-3: #b8a48a;
-  --chart-4: #9b2c2c;
-  --chart-5: #8a6d3b;
-  --sidebar: #223c35;
-  --sidebar-foreground: #f3f0e5;
-  --sidebar-primary: #fcfbf8;
-  --sidebar-primary-foreground: #223c35;
-  --sidebar-accent: #2e4c43;
-  --sidebar-accent-foreground: #fcfbf8;
-  --sidebar-border: #3a574e;
-  --sidebar-ring: #b8a48a;
+  --popover-foreground: #102623;
+  --primary: #126b60;
+  --primary-foreground: #ffffff;
+  --secondary: #e6f7f4;
+  --secondary-foreground: #0e4c44;
+  --muted: #eaf5f3;
+  --muted-foreground: #4e6e67;
+  --accent: #d2f3ec;
+  --accent-foreground: #0c433c;
+  --destructive: #e11d48;
+  --border: #d4e8e3;
+  --input: #cae3dd;
+  --ring: #3ec4b2;
+  --chart-1: #126b60;
+  --chart-2: #3ec4b2;
+  --chart-3: #82e8da;
+  --chart-4: #f43f5e;
+  --chart-5: #0e4c44;
+  --sidebar: #0d3832;
+  --sidebar-foreground: #e6f7f4;
+  --sidebar-primary: #3ec4b2;
+  --sidebar-primary-foreground: #0d3832;
+  --sidebar-accent: #174d45;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #1e5950;
+  --sidebar-ring: #5ce1cf;
 }
 
 .dark {
-  --background: #14201c;
-  --foreground: #f3f0e5;
-  --card: #1b2a25;
-  --card-foreground: #f3f0e5;
-  --popover: #1b2a25;
-  --popover-foreground: #f3f0e5;
-  --primary: #c9b79b;
-  --primary-foreground: #1b2a25;
-  --secondary: #243530;
-  --secondary-foreground: #f3f0e5;
-  --muted: #243530;
-  --muted-foreground: #b3bdb7;
-  --accent: #2d403a;
-  --accent-foreground: #f3f0e5;
-  --destructive: #e07a7a;
-  --border: #33453e;
-  --input: #3d5149;
-  --ring: #b8a48a;
-  --chart-1: #c9b79b;
-  --chart-2: #8fb3a2;
-  --chart-3: #b8a48a;
-  --chart-4: #e07a7a;
-  --chart-5: #d9b56a;
-  --sidebar: #101915;
-  --sidebar-foreground: #f3f0e5;
-  --sidebar-primary: #c9b79b;
-  --sidebar-primary-foreground: #14201c;
-  --sidebar-accent: #243530;
-  --sidebar-accent-foreground: #fcfbf8;
-  --sidebar-border: #2b3d36;
-  --sidebar-ring: #b8a48a;
+  --background: #0a1916;
+  --foreground: #e8faf7;
+  --card: #0f2420;
+  --card-foreground: #e8faf7;
+  --popover: #0f2420;
+  --popover-foreground: #e8faf7;
+  --primary: #4cd8c7;
+  --primary-foreground: #08211d;
+  --secondary: #163630;
+  --secondary-foreground: #e8faf7;
+  --muted: #163630;
+  --muted-foreground: #81a8a1;
+  --accent: #1d453e;
+  --accent-foreground: #e8faf7;
+  --destructive: #f43f5e;
+  --border: #1c423b;
+  --input: #234f47;
+  --ring: #4cd8c7;
+  --chart-1: #4cd8c7;
+  --chart-2: #2ba495;
+  --chart-3: #8beee2;
+  --chart-4: #f43f5e;
+  --chart-5: #156257;
+  --sidebar: #081715;
+  --sidebar-foreground: #e8faf7;
+  --sidebar-primary: #4cd8c7;
+  --sidebar-primary-foreground: #08211d;
+  --sidebar-accent: #163630;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #1b3f38;
+  --sidebar-ring: #4cd8c7;
 }
 
 @layer base {
@@ -132,8 +132,8 @@
   }
 
   ::selection {
-    background-color: #b8a48a;
-    color: #202a27;
+    background-color: #3ec4b2;
+    color: #0d3832;
   }
 
   :focus-visible {
@@ -168,6 +168,6 @@
   }
 
   .eyebrow {
-    @apply text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground;
+    @apply text-xs font-semibold uppercase tracking-[0.18em] text-primary/80;
   }
 }

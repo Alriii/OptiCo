@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AlertCircle, ArrowRight, Clock, Eye, RefreshCw } from "lucide-react";
+import { AlertCircle, ArrowRight, Clock, RefreshCw } from "lucide-react";
 import { publicService } from "@/services/public.service";
 import { readList } from "@/lib/api-shape";
 import { getApiError } from "@/lib/api-error";
@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { LoadingState } from "@/components/shared/loading-state";
 import { EmptyState } from "@/components/shared/empty-state";
+import { getServicePhoto } from "@/lib/clinic-media";
 
 const SAMPLE: Service[] = [
   {
@@ -141,57 +142,60 @@ export function ServicesDirectory() {
           description="The clinic has not published its service list. Please check back or call the clinic."
         />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
-          {services.map((service) => (
-            <Card key={service.id} className="gap-4 py-5">
-              <CardContent className="space-y-4 px-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <span className="flex size-10 items-center justify-center rounded-full bg-secondary text-primary">
-                      <Eye className="size-5" aria-hidden="true" />
-                    </span>
-                    <div>
-                      <h2 className="font-medium">{service.name}</h2>
-                      <p className="text-xs text-muted-foreground">
-                        {service.durationMinutes
-                          ? `${service.durationMinutes} minutes`
-                          : "Duration set by clinic"}
-                      </p>
-                    </div>
-                  </div>
-                  <p className="text-sm font-medium">
+        <div className="grid gap-6 md:grid-cols-2">
+          {services.map((service) => {
+            const photo = getServicePhoto(service.name);
+            return (
+              <Card key={service.id} className="group overflow-hidden rounded-3xl border border-border/80 bg-card shadow-sm transition-all hover:border-primary/40 hover:shadow-md">
+                <div className="relative aspect-[16/9] overflow-hidden bg-secondary">
+                  <img
+                    src={photo}
+                    alt={service.name}
+                    className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                  <div className="absolute top-3 right-3 rounded-full bg-background/90 px-3 py-1 text-xs font-semibold text-foreground shadow-xs backdrop-blur-xs">
                     {formatCurrency(service.fee)}
+                  </div>
+                </div>
+
+                <CardContent className="space-y-4 p-5 sm:p-6">
+                  <div className="space-y-1">
+                    <h2 className="text-lg font-semibold tracking-tight text-foreground">{service.name}</h2>
+                    <p className="text-xs text-primary font-medium">
+                      {service.durationMinutes
+                        ? `${service.durationMinutes} minutes diagnostic session`
+                        : "Duration set by clinic"}
+                    </p>
+                  </div>
+
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {service.description ?? "Clinic service."}
                   </p>
-                </div>
 
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  {service.description ?? "Clinic service."}
-                </p>
-
-                <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
-                  <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                    <Clock className="size-3.5" aria-hidden="true" />
-                    {sample
-                      ? "Sample service"
-                      : "Request this service online"}
-                  </span>
-                  {sample ? (
-                    <Button asChild size="sm" variant="outline">
-                      <Link href="/booking">
-                        Try booking <ArrowRight className="size-3.5" />
-                      </Link>
-                    </Button>
-                  ) : (
-                    <Button asChild size="sm">
-                      <Link href={`/booking?service=${service.id}`}>
-                        Request this service <ArrowRight className="size-3.5" />
-                      </Link>
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/60 pt-4">
+                    <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Clock className="size-3.5 text-primary" aria-hidden="true" />
+                      {sample ? "Sample service" : "Staff-reviewed request"}
+                    </span>
+                    {sample ? (
+                      <Button asChild size="sm" variant="outline" className="rounded-xl">
+                        <Link href="/booking">
+                          Try booking <ArrowRight className="size-3.5" />
+                        </Link>
+                      </Button>
+                    ) : (
+                      <Button asChild size="sm" className="rounded-xl shadow-xs">
+                        <Link href={`/booking?service=${service.id}`}>
+                          Request service <ArrowRight className="size-3.5" />
+                        </Link>
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
 

@@ -151,8 +151,13 @@ export function LoginForm({
             <input
               id="login-email"
               type="email"
-              autoComplete="email"
+              autoComplete="username"
               placeholder="name@example.com"
+              spellCheck={false}
+              autoCapitalize="none"
+              autoCorrect="off"
+              enterKeyHint="next"
+              required
               aria-invalid={Boolean(form.formState.errors.email)}
               {...form.register("email")}
               className={`flex h-10 w-full rounded-xl border bg-background/80 pl-9 pr-3 text-sm shadow-xs transition-colors placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
@@ -189,6 +194,8 @@ export function LoginForm({
               type={showPassword ? "text" : "password"}
               autoComplete="current-password"
               placeholder="••••••••••••"
+              enterKeyHint="done"
+              required
               aria-invalid={Boolean(form.formState.errors.password)}
               {...form.register("password")}
               className={`flex h-10 w-full rounded-xl border bg-background/80 pl-9 pr-10 text-sm shadow-xs transition-colors placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
@@ -200,6 +207,7 @@ export function LoginForm({
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
+              aria-pressed={showPassword}
               aria-label={showPassword ? "Hide password" : "Show password"}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/70 transition-colors hover:text-foreground"
             >
