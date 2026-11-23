@@ -6,6 +6,7 @@ import {
   Activity,
   CalendarDays,
   CalendarRange,
+  ChevronsUpDown,
   ClipboardList,
   Clock,
   FileClock,
@@ -21,8 +22,24 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { ROLE_LABELS, portalPathForRole, type Role } from "@/lib/auth-redirect";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+function getInitials(name?: string): string {
+  if (!name) return "U";
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "U";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
 
 const NAV_BY_ROLE: Record<Role, { href: string; label: string; icon: typeof LayoutDashboard }[]> = {
   PATIENT: [
@@ -83,16 +100,67 @@ export function PortalShell({ role, children }: PortalShellProps) {
               </span>
             </Link>
 
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={logout}
-              className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground lg:hidden"
-            >
-              <LogOut className="size-4" aria-hidden="true" />
-              <span className="hidden sm:inline">Sign out</span>
-            </Button>
+            {/* Mobile User Account Dropdown */}
+            <div className="lg:hidden">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label="User account menu"
+                    className="flex size-8 items-center justify-center rounded-full ring-2 ring-sidebar-foreground/20 transition-all hover:ring-primary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring cursor-pointer"
+                  >
+                    <Avatar size="sm" className="size-8">
+                      <AvatarFallback className="bg-emerald-600/30 text-emerald-200 font-semibold text-xs">
+                        {getInitials(user?.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  side="bottom"
+                  align="end"
+                  sideOffset={8}
+                  className="w-56 rounded-2xl border border-border/80 bg-popover/95 p-1.5 shadow-xl backdrop-blur-md"
+                >
+                  <DropdownMenuLabel className="p-2 font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-xs font-semibold leading-none text-foreground">{user?.name ?? "My Account"}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">{user?.email}</p>
+                      <div className="pt-1">
+                        <Badge variant="outline" className="text-[10px] font-normal">
+                          {ROLE_LABELS[role]}
+                        </Badge>
+                      </div>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator className="my-1" />
+                  {role === "PATIENT" && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/patient/profile" className="flex items-center gap-2 cursor-pointer">
+                        <UserRound className="size-4" />
+                        <span>Profile & Details</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  {role === "ADMIN" && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin/settings" className="flex items-center gap-2 cursor-pointer">
+                        <Settings className="size-4" />
+                        <span>Clinic Settings</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onClick={logout}
+                    className="flex items-center gap-2 cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive"
+                  >
+                    <LogOut className="size-4" />
+                    <span>Sign out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
 
           <nav
@@ -111,9 +179,9 @@ export function PortalShell({ role, children }: PortalShellProps) {
                   href={item.href}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "flex shrink-0 items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors",
+                    "flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm transition-all",
                     active
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium shadow-xs"
                       : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
                   )}
                 >
@@ -125,43 +193,78 @@ export function PortalShell({ role, children }: PortalShellProps) {
           </nav>
         </div>
 
-        <div className="hidden px-5 py-5 lg:block">
-          <div className="rounded-2xl border border-sidebar-border/70 bg-sidebar-accent/40 p-3.5 text-xs">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <p className="font-medium truncate">{user?.name ?? "Signed in"}</p>
-                <p className="truncate text-sidebar-foreground/70">{user?.email}</p>
-              </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={logout}
-                title="Sign out"
-                className="size-7 shrink-0 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-              >
-                <LogOut className="size-3.5" aria-hidden="true" />
-                <span className="sr-only">Sign out</span>
-              </Button>
-            </div>
-            <div className="mt-2.5 flex items-center justify-between border-t border-sidebar-border/40 pt-2">
-              <Badge
-                variant="outline"
-                className="border-sidebar-border text-sidebar-foreground text-[10px]"
-              >
-                {ROLE_LABELS[role]}
-              </Badge>
+        {/* Desktop User Account Pill & Accessible Popover Menu */}
+        <div className="hidden p-3.5 lg:block">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                onClick={logout}
-                className="text-[11px] text-sidebar-foreground/70 hover:text-sidebar-foreground hover:underline transition-colors"
+                aria-label="User account menu"
+                className="group flex w-full items-center gap-3 rounded-2xl border border-sidebar-border/70 bg-sidebar-accent/30 p-2.5 text-left transition-all hover:bg-sidebar-accent/70 hover:border-sidebar-border focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring cursor-pointer"
               >
-                Sign out
+                <Avatar size="default" className="size-9 ring-1 ring-sidebar-foreground/20 shrink-0">
+                  <AvatarFallback className="bg-emerald-600/30 text-emerald-200 font-semibold text-xs">
+                    {getInitials(user?.name)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs font-semibold text-sidebar-foreground group-hover:text-sidebar-accent-foreground">
+                    {user?.name ?? "Signed in"}
+                  </p>
+                  <p className="truncate text-[11px] text-sidebar-foreground/60">
+                    {user?.email ?? ROLE_LABELS[role]}
+                  </p>
+                </div>
+                <ChevronsUpDown className="size-4 shrink-0 text-sidebar-foreground/40 transition-colors group-hover:text-sidebar-foreground/80" aria-hidden="true" />
               </button>
-            </div>
-          </div>
-          <p className="mt-3 text-[11px] leading-relaxed text-sidebar-foreground/60">
-            Demo clinic workspace. Sample data only.
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              side="top"
+              align="start"
+              sideOffset={8}
+              className="w-56 rounded-2xl border border-border/80 bg-popover/95 p-1.5 shadow-2xl backdrop-blur-md"
+            >
+              <DropdownMenuLabel className="p-2 font-normal">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-xs font-semibold leading-none text-foreground">{user?.name ?? "Signed in"}</p>
+                  <p className="text-[11px] text-muted-foreground truncate">{user?.email}</p>
+                  <div className="pt-1.5">
+                    <Badge variant="outline" className="text-[10px] font-normal">
+                      {ROLE_LABELS[role]}
+                    </Badge>
+                  </div>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator className="my-1" />
+              {role === "PATIENT" && (
+                <DropdownMenuItem asChild>
+                  <Link href="/patient/profile" className="flex items-center gap-2 cursor-pointer">
+                    <UserRound className="size-4" />
+                    <span>Profile & details</span>
+                  </Link>
+                </DropdownMenuItem>
+              )}
+              {role === "ADMIN" && (
+                <DropdownMenuItem asChild>
+                  <Link href="/admin/settings" className="flex items-center gap-2 cursor-pointer">
+                    <Settings className="size-4" />
+                    <span>Clinic settings</span>
+                  </Link>
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={logout}
+                className="flex items-center gap-2 cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive"
+              >
+                <LogOut className="size-4" />
+                <span>Sign out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <p className="mt-2.5 px-1 text-[10px] text-sidebar-foreground/50">
+            Demo clinic workspace · OptiCo
           </p>
         </div>
       </aside>
