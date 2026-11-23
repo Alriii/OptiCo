@@ -216,30 +216,40 @@ export function BookingFlow({ initialServiceId }: { initialServiceId?: string })
     setSubmitError(null);
     setConflict(false);
 
-    const payload = {
-      serviceId: selectedService.id,
-      startAt: selectedSlot.startAt,
-      ...values,
-      dateOfBirth: values.dateOfBirth || undefined,
-      guardian: guardianRequired
-        ? {
-            name: values.guardianName ?? "",
-            relationship: values.guardianRelationship ?? "",
-            contact: values.guardianContact ?? "",
-          }
-        : null,
-    };
+    const note = values.note?.trim() || undefined;
+    const isRegisteredPatient = user?.role.toUpperCase() === "PATIENT";
 
     try {
-      const response =
-        user?.role.toUpperCase() === "PATIENT"
-          ? await patientService.requestAppointment(payload)
-          : await publicService.createAppointment(payload);
+      const response = isRegisteredPatient
+        ? await patientService.requestAppointment({
+            serviceId: selectedService.id,
+            startAt: selectedSlot.startAt,
+            note,
+          })
+        : await publicService.createAppointment({
+            serviceId: selectedService.id,
+            startAt: selectedSlot.startAt,
+            note,
+            patient: {
+              fullName: values.fullName.trim(),
+              email: values.email.trim(),
+              mobile: values.mobile.trim() || undefined,
+              dateOfBirth: values.dateOfBirth || undefined,
+              guardianName: guardianRequired
+                ? values.guardianName?.trim() || undefined
+                : undefined,
+              guardianRelationship: guardianRequired
+                ? values.guardianRelationship?.trim() || undefined
+                : undefined,
+              guardianContact: guardianRequired
+                ? values.guardianContact?.trim() || undefined
+                : undefined,
+            },
+          });
 
-      const appointment = response.data?.appointment;
       setResult({
-        reference: response.data?.reference ?? appointment?.reference,
-        id: appointment?.id,
+        reference: response.data.reference,
+        id: response.data.id,
       });
       setStep(6);
     } catch (error) {

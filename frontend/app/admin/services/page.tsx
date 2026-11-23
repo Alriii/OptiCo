@@ -33,7 +33,7 @@ const EMPTY: ServiceFormInput = {
   bufferBeforeMinutes: 0,
   bufferAfterMinutes: 0,
   fee: 0,
-  active: true,
+  isActive: true,
   displayOrder: 0,
 };
 
@@ -81,7 +81,7 @@ export default function AdminServicesPage() {
       bufferBeforeMinutes: service.bufferBeforeMinutes ?? 0,
       bufferAfterMinutes: service.bufferAfterMinutes ?? 0,
       fee: Number(service.fee ?? 0),
-      active: service.active ?? true,
+      isActive: service.isActive ?? true,
       displayOrder: service.displayOrder ?? 0,
     });
   };
@@ -105,8 +105,8 @@ export default function AdminServicesPage() {
 
   const toggleActive = async (service: Service) => {
     try {
-      await adminService.updateService(service.id, { active: !service.active });
-      toast.success(service.active ? "Service deactivated." : "Service activated.");
+      await adminService.updateService(service.id, { isActive: !service.isActive });
+      toast.success(service.isActive ? "Service deactivated." : "Service activated.");
       await load();
     } catch (err) {
       toast.error(getApiError(err, "The service status could not be changed."));
@@ -145,8 +145,8 @@ export default function AdminServicesPage() {
       key: "active",
       header: "Status",
       cell: (service) => (
-        <Badge variant={service.active === false ? "outline" : "secondary"}>
-          {service.active === false ? "Inactive" : "Active"}
+        <Badge variant={service.isActive === false ? "outline" : "secondary"}>
+          {service.isActive === false ? "Inactive" : "Active"}
         </Badge>
       ),
     },
@@ -161,21 +161,21 @@ export default function AdminServicesPage() {
           <ConfirmDialog
             trigger={
               <Button type="button" size="sm" variant="outline">
-                {service.active === false ? "Activate" : "Deactivate"}
+                {service.isActive === false ? "Activate" : "Deactivate"}
               </Button>
             }
             title={
-              service.active === false
+              service.isActive === false
                 ? "Activate this service?"
                 : "Deactivate this service?"
             }
             description={
-              service.active === false
+              service.isActive === false
                 ? "The service becomes available for public booking."
                 : "The service is hidden from new public booking. Existing appointments keep their snapshots."
             }
-            confirmLabel={service.active === false ? "Activate" : "Deactivate"}
-            destructive={service.active !== false}
+            confirmLabel={service.isActive === false ? "Activate" : "Deactivate"}
+            destructive={service.isActive !== false}
             onConfirm={() => toggleActive(service)}
           />
         </div>
@@ -311,7 +311,7 @@ export default function AdminServicesPage() {
                     id="service-active"
                     type="checkbox"
                     className="size-4 rounded border-input"
-                    {...form.register("active")}
+                    {...form.register("isActive")}
                   />
                   <FieldLabel htmlFor="service-active">Active for booking</FieldLabel>
                 </Field>

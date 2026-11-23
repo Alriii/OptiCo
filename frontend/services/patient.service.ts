@@ -6,7 +6,7 @@ import type {
   ListPayload,
   PatientProfile,
 } from "./types";
-import type { BookingRequestInput } from "./public.service";
+import type { BookingResult, PatientBookingInput } from "./public.service";
 
 export const profileSchema = z.object({
   fullName: z.string().trim().min(2, "Enter your full name."),
@@ -21,22 +21,36 @@ export const profileSchema = z.object({
 
 export type ProfileInput = z.infer<typeof profileSchema>;
 
+/**
+ * Profile endpoints wrap the record as `{ patient }`. Unwrap once here so
+ * pages can treat the response data as the patient record.
+ */
+function unwrapPatient(
+  envelope: ApiEnvelope<{ patient: PatientProfile } | PatientProfile>,
+): ApiEnvelope<PatientProfile> {
+  const payload = envelope.data;
+  const patient =
+    payload && "patient" in payload && payload.patient
+      ? payload.patient
+      : (payload as PatientProfile);
+  return { ...envelope, data: patient };
+}
+
 export const patientService = {
   async getProfile(): Promise<ApiEnvelope<PatientProfile>> {
-    const response = await api.get<ApiEnvelope<PatientProfile>>(
-      "/patient/profile",
-    );
-    return response.data;
+    const response = await api.get<
+      ApiEnvelope<{ patient: PatientProfile } | PatientProfile>
+    >("/patient/profile");
+    return unwrapPatient(response.data);
   },
 
   async updateProfile(
     input: ProfileInput,
   ): Promise<ApiEnvelope<PatientProfile>> {
-    const response = await api.patch<ApiEnvelope<PatientProfile>>(
-      "/patient/profile",
-      input,
-    );
-    return response.data;
+    const response = await api.patch<
+      ApiEnvelope<{ patient: PatientProfile } | PatientProfile>
+    >("/patient/profile", input);
+    return unwrapPatient(response.data);
   },
 
   async getAppointments(): Promise<ApiEnvelope<ListPayload<Appointment>>> {
@@ -47,11 +61,12 @@ export const patientService = {
   },
 
   async requestAppointment(
-    input: BookingRequestInput,
-  ): Promise<ApiEnvelope<{ appointment?: Appointment; reference?: string }>> {
-    const response = await api.post<
-      ApiEnvelope<{ appointment?: Appointment; reference?: string }>
-    >("/patient/appointments", input);
+    input: PatientBookingInput,
+  ): Promise<ApiEnvelope<BookingResult>> {
+    const response = await api.post<ApiEnvelope<BookingResult>>(
+      "/patient/appointments",
+      input,
+    );
     return response.data;
   },
 

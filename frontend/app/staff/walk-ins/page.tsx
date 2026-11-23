@@ -18,7 +18,6 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import {
   Select,
@@ -34,7 +33,6 @@ interface WalkInFormState {
   mobile: string;
   dateOfBirth: string;
   serviceId: string;
-  note: string;
   guardianName: string;
   guardianRelationship: string;
   guardianContact: string;
@@ -46,7 +44,6 @@ const EMPTY_FORM: WalkInFormState = {
   mobile: "",
   dateOfBirth: "",
   serviceId: "",
-  note: "",
   guardianName: "",
   guardianRelationship: "",
   guardianContact: "",
@@ -122,17 +119,20 @@ export default function StaffWalkInsPage() {
     setSubmitting(true);
     try {
       await staffService.createWalkIn({
-        fullName: form.fullName.trim(),
-        email: form.email.trim(),
-        mobile: form.mobile.trim(),
-        dateOfBirth: form.dateOfBirth || undefined,
+        patient: {
+          fullName: form.fullName.trim(),
+          email: form.email.trim(),
+          mobile: form.mobile.trim(),
+          dateOfBirth: form.dateOfBirth || undefined,
+          guardianName: guardianRequired ? form.guardianName.trim() : undefined,
+          guardianRelationship: guardianRequired
+            ? form.guardianRelationship.trim()
+            : undefined,
+          guardianContact: guardianRequired
+            ? form.guardianContact.trim()
+            : undefined,
+        },
         serviceId: form.serviceId,
-        note: form.note.trim() || undefined,
-        guardianName: guardianRequired ? form.guardianName.trim() : undefined,
-        guardianRelationship: guardianRequired
-          ? form.guardianRelationship.trim()
-          : undefined,
-        guardianContact: guardianRequired ? form.guardianContact.trim() : undefined,
       });
       toast.success("Walk-in added to the queue.");
       setForm(EMPTY_FORM);
@@ -302,21 +302,6 @@ export default function StaffWalkInsPage() {
                   </div>
                 </div>
               ) : null}
-
-              <Field>
-                <FieldLabel htmlFor="walkin-note">Operational note</FieldLabel>
-                <Textarea
-                  id="walkin-note"
-                  rows={2}
-                  value={form.note}
-                  onChange={(event) => setField("note", event.target.value)}
-                  placeholder="Optional scheduling context only."
-                />
-                <FieldDescription>
-                  Do not enter diagnoses, prescriptions, or sensitive clinical
-                  details.
-                </FieldDescription>
-              </Field>
 
               <Button type="submit" disabled={submitting}>
                 {submitting ? "Adding…" : "Add to queue"}

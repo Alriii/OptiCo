@@ -2,11 +2,9 @@ import { z } from "zod";
 import api from "@/lib/axios";
 import type {
   ApiEnvelope,
-  Appointment,
   AvailabilityResponse,
   ClinicInfo,
   Doctor,
-  Guardian,
   ListPayload,
   Service,
 } from "./types";
@@ -32,10 +30,38 @@ export const bookingDetailsSchema = z.object({
 
 export type BookingDetails = z.infer<typeof bookingDetailsSchema>;
 
-export interface BookingRequestInput extends BookingDetails {
+/** Patient fields the guest endpoint nests under `patient`. */
+export interface BookingPatientInput {
+  fullName: string;
+  email: string;
+  mobile?: string;
+  dateOfBirth?: string;
+  guardianName?: string;
+  guardianRelationship?: string;
+  guardianContact?: string;
+}
+
+/** Guest bookings create the patient record on the server, so details are nested. */
+export interface GuestBookingInput {
   serviceId: string;
   startAt: string;
-  guardian?: Guardian | null;
+  note?: string;
+  patient: BookingPatientInput;
+}
+
+/** Signed-in patients already have a record, so the API takes only scheduling data. */
+export interface PatientBookingInput {
+  serviceId: string;
+  startAt: string;
+  note?: string;
+}
+
+export interface BookingResult {
+  id: string;
+  reference: string;
+  status: string;
+  requestedStartAt: string;
+  serviceName: string;
 }
 
 export const publicService = {
@@ -77,11 +103,12 @@ export const publicService = {
   },
 
   async createAppointment(
-    input: BookingRequestInput,
-  ): Promise<ApiEnvelope<{ appointment?: Appointment; reference?: string }>> {
-    const response = await api.post<
-      ApiEnvelope<{ appointment?: Appointment; reference?: string }>
-    >("/public/appointments", input);
+    input: GuestBookingInput,
+  ): Promise<ApiEnvelope<BookingResult>> {
+    const response = await api.post<ApiEnvelope<BookingResult>>(
+      "/public/appointments",
+      input,
+    );
     return response.data;
   },
 };

@@ -7,11 +7,11 @@ Neon development branch.
 
 | Service | Port |
 |---|---|
-| Next.js | 3000 |
+| Vite | 3001 |
 | Express | 7000 |
 
-The browser only calls `http://localhost:3000/api/...`. Next rewrites that to
-`http://localhost:7000/api/...`.
+The browser only calls `http://localhost:3001/api/...`. The Vite dev server
+proxies that to `http://localhost:7000/api/...`.
 
 ## Backend
 
@@ -30,10 +30,10 @@ npm run dev
 DATABASE_URL=postgresql://...
 JWT_SECRET=<32+ chars>
 CSRF_SECRET=<32+ chars>
-FRONTEND_URL=http://localhost:3000
-FRONTEND_ORIGINS=http://localhost:3000
+FRONTEND_URL=http://localhost:3001
+FRONTEND_ORIGINS=http://localhost:3001
 BACKEND_URL=http://localhost:7000
-APP_PUBLIC_URL=http://localhost:3000
+APP_PUBLIC_URL=http://localhost:3001
 ```
 
 Leave `SMTP_HOST` empty to keep the outbox worker in dry-run mode. Invite and

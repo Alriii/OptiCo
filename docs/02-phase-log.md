@@ -89,3 +89,12 @@ Inspected starter repositories (`portfolio-frontend-itelect2` and `appsdev-api-t
 - Public site: Home showcase, Services directory, Doctors directory & profile, Booking flow with guest and account options, guest management route, policy and contact pages.
 - Four distinct role portals: Patient, Doctor, Staff/Receptionist, and Admin.
 - Full quality check pass: Vitest suites on backend (31 tests) and frontend (9 tests) pass cleanly; Next.js 16 build succeeds with all 34 routes prerendered / dynamic.
+
+## 2026-11-23 - Vite migration follow-up
+
+- Frontend now builds with Vite 8 and React Router; `next/link` and `next/navigation` resolve to shims in `frontend/lib/`, so the existing `app/` pages stay in place.
+- Aligned frontend payloads with the API schemas: guest booking and walk-ins nest patient details, admin services use `isActive`, admin doctors use `displayName`/`isActive`/`serviceIds`, and payments use the `EWALLET` enum value.
+- Doctor types now follow the API (`displayName`, `isActive`, `serviceIds`), which fixes blank names in the public directory, profile, home showcase, and admin lists.
+- Patient profile reads unwrap the `{ patient }` envelope, so booking prefill and the profile page load correctly.
+- Added `frontend/vercel.json` with the `/api` rewrite to Render and the SPA fallback. Local ports documented as Vite 3001 / Express 7000.
+- Verified with a live contract smoke test against the seeded database: 11/11 checks passed for guest booking, walk-in, admin service and doctor writes, doctor create, and e-wallet payment.

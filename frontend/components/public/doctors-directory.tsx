@@ -17,25 +17,22 @@ const SAMPLE: Doctor[] = [
   {
     id: "sample-doctor-1",
     slug: "sample-doctor-santos",
-    name: "Dr. Sample Santos",
-    title: "Optometrist",
-    credentials: "OD",
+    displayName: "Dr. Sample Santos",
+    credentials: "OD, Optometrist",
     bio: "Sample profile for layout review. Not a real clinician or a real clinic record.",
   },
   {
     id: "sample-doctor-2",
     slug: "sample-doctor-reyes",
-    name: "Dr. Sample Reyes",
-    title: "Optometrist",
-    credentials: "OD",
+    displayName: "Dr. Sample Reyes",
+    credentials: "OD, Optometrist",
     bio: "Sample profile for layout review. Not a real clinician or a real clinic record.",
   },
   {
     id: "sample-doctor-3",
     slug: "sample-doctor-cruz",
-    name: "Dr. Sample Cruz",
-    title: "Optometrist",
-    credentials: "OD",
+    displayName: "Dr. Sample Cruz",
+    credentials: "OD, Optometrist",
     bio: "Sample profile for layout review. Not a real clinician or a real clinic record.",
   },
 ];
@@ -135,11 +132,9 @@ export function DoctorsDirectory() {
                     <Stethoscope className="size-5" aria-hidden="true" />
                   </span>
                   <div>
-                    <h2 className="font-medium">{doctor.name}</h2>
+                    <h2 className="font-medium">{doctor.displayName}</h2>
                     <p className="text-xs text-muted-foreground">
-                      {[doctor.title, doctor.credentials]
-                        .filter(Boolean)
-                        .join(", ") || "Clinic doctor"}
+                      {doctor.credentials || "Clinic doctor"}
                     </p>
                   </div>
                 </div>

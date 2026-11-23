@@ -218,7 +218,7 @@ export function GuestManager() {
               </p>
               <p className="mt-1 font-medium">
                 {appointment.doctorName ??
-                  appointment.doctor?.name ??
+                  appointment.doctor?.displayName ??
                   "Assigned after approval"}
               </p>
             </div>

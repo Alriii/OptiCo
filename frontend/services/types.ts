@@ -48,24 +48,27 @@ export interface Service {
   id: string;
   slug?: string;
   name: string;
-  description?: string;
+  description?: string | null;
   durationMinutes?: number;
   bufferBeforeMinutes?: number;
   bufferAfterMinutes?: number;
   fee?: number | string;
-  active?: boolean;
+  isActive?: boolean;
   displayOrder?: number;
 }
 
 export interface Doctor {
   id: string;
+  userId?: string;
   slug?: string;
-  name: string;
-  title?: string;
-  credentials?: string;
-  bio?: string;
-  photoUrl?: string;
-  active?: boolean;
+  displayName: string;
+  credentials?: string | null;
+  bio?: string | null;
+  photoUrl?: string | null;
+  isActive?: boolean;
+  email?: string;
+  userStatus?: string;
+  serviceIds?: string[];
   services?: Service[];
 }
 

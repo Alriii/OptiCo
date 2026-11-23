@@ -35,11 +35,10 @@ import {
 const EMPTY: DoctorFormInput = {
   name: "",
   slug: "",
-  title: "",
   credentials: "",
   bio: "",
   photoUrl: "",
-  active: true,
+  isActive: true,
   email: "",
 };
 
@@ -88,18 +87,24 @@ export default function AdminDoctorsPage() {
   const startEdit = (doctor: Doctor) => {
     setEditingId(doctor.id);
     form.reset({
-      name: doctor.name,
+      name: doctor.displayName,
       slug: doctor.slug ?? "",
-      title: doctor.title ?? "",
       credentials: doctor.credentials ?? "",
       bio: doctor.bio ?? "",
       photoUrl: doctor.photoUrl ?? "",
-      active: doctor.active ?? true,
+      isActive: doctor.isActive ?? true,
       email: "",
     });
   };
 
   const onSubmit = async (values: DoctorFormInput) => {
+    if (!editingId && !values.email?.trim()) {
+      form.setError("email", {
+        message: "An invitation email is required for a new doctor.",
+      });
+      return;
+    }
+
     try {
       if (editingId) {
         await adminService.updateDoctor(editingId, values);
@@ -118,8 +123,8 @@ export default function AdminDoctorsPage() {
 
   const toggleActive = async (doctor: Doctor) => {
     try {
-      await adminService.updateDoctor(doctor.id, { active: !doctor.active });
-      toast.success(doctor.active ? "Doctor deactivated." : "Doctor activated.");
+      await adminService.updateDoctor(doctor.id, { isActive: !doctor.isActive });
+      toast.success(doctor.isActive ? "Doctor deactivated." : "Doctor activated.");
       await load();
     } catch (err) {
       toast.error(getApiError(err, "The doctor status could not be changed."));
@@ -130,7 +135,7 @@ export default function AdminDoctorsPage() {
   const pickDoctorForServices = (id: string) => {
     setSelectedDoctorId(id);
     const doctor = doctors.find((item) => item.id === id);
-    setSelectedServiceIds(doctor?.services?.map((service) => service.id) ?? []);
+    setSelectedServiceIds(doctor?.serviceIds ?? []);
   };
 
   const toggleService = (id: string) => {
@@ -161,10 +166,9 @@ export default function AdminDoctorsPage() {
       header: "Doctor",
       cell: (doctor) => (
         <div>
-          <p className="font-medium">{doctor.name}</p>
+          <p className="font-medium">{doctor.displayName}</p>
           <p className="text-xs text-muted-foreground">
-            {[doctor.title, doctor.credentials].filter(Boolean).join(", ") ||
-              "No title"}
+            {doctor.credentials || "No credentials"}
           </p>
         </div>
       ),
@@ -177,14 +181,14 @@ export default function AdminDoctorsPage() {
     {
       key: "services",
       header: "Services",
-      cell: (doctor) => doctor.services?.length ?? 0,
+      cell: (doctor) => doctor.serviceIds?.length ?? 0,
     },
     {
       key: "active",
       header: "Status",
       cell: (doctor) => (
-        <Badge variant={doctor.active === false ? "outline" : "secondary"}>
-          {doctor.active === false ? "Inactive" : "Active"}
+        <Badge variant={doctor.isActive === false ? "outline" : "secondary"}>
+          {doctor.isActive === false ? "Inactive" : "Active"}
         </Badge>
       ),
     },
@@ -199,21 +203,21 @@ export default function AdminDoctorsPage() {
           <ConfirmDialog
             trigger={
               <Button type="button" size="sm" variant="outline">
-                {doctor.active === false ? "Activate" : "Deactivate"}
+                {doctor.isActive === false ? "Activate" : "Deactivate"}
               </Button>
             }
             title={
-              doctor.active === false
+              doctor.isActive === false
                 ? "Activate this doctor?"
                 : "Deactivate this doctor?"
             }
             description={
-              doctor.active === false
+              doctor.isActive === false
                 ? "The doctor can be assigned appointments again once availability is set."
                 : "The doctor is excluded from new automatic assignments. Existing appointments are unchanged."
             }
-            confirmLabel={doctor.active === false ? "Activate" : "Deactivate"}
-            destructive={doctor.active !== false}
+            confirmLabel={doctor.isActive === false ? "Activate" : "Deactivate"}
+            destructive={doctor.isActive !== false}
             onConfirm={() => toggleActive(doctor)}
           />
         </div>
@@ -280,20 +284,17 @@ export default function AdminDoctorsPage() {
                 </Field>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field>
-                  <FieldLabel htmlFor="doctor-title">Title</FieldLabel>
-                  <Input
-                    id="doctor-title"
-                    placeholder="Optometrist"
-                    {...form.register("title")}
-                  />
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="doctor-credentials">Credentials</FieldLabel>
-                  <Input id="doctor-credentials" placeholder="OD" {...form.register("credentials")} />
-                </Field>
-              </div>
+              <Field>
+                <FieldLabel htmlFor="doctor-credentials">Credentials</FieldLabel>
+                <Input
+                  id="doctor-credentials"
+                  placeholder="OD, Optometrist"
+                  {...form.register("credentials")}
+                />
+                <FieldDescription>
+                  Shown under the doctor's name on the public site.
+                </FieldDescription>
+              </Field>
 
               <Field>
                 <FieldLabel htmlFor="doctor-email">
@@ -339,7 +340,7 @@ export default function AdminDoctorsPage() {
                     id="doctor-active"
                     type="checkbox"
                     className="size-4 rounded border-input"
-                    {...form.register("active")}
+                    {...form.register("isActive")}
                   />
                   <FieldLabel htmlFor="doctor-active">Active for assignment</FieldLabel>
                 </Field>
@@ -399,7 +400,7 @@ export default function AdminDoctorsPage() {
                   <SelectContent>
                     {doctors.map((doctor) => (
                       <SelectItem key={doctor.id} value={doctor.id}>
-                        {doctor.name}
+                        {doctor.displayName}
                       </SelectItem>
                     ))}
                   </SelectContent>

@@ -10,22 +10,33 @@ import type {
   WalkIn,
 } from "./types";
 
-export interface WalkInInput {
+export interface WalkInPatientInput {
   fullName: string;
   email: string;
-  mobile: string;
+  mobile?: string;
   dateOfBirth?: string;
-  serviceId: string;
-  note?: string;
   guardianName?: string;
   guardianRelationship?: string;
   guardianContact?: string;
 }
 
+export interface WalkInInput {
+  patient: WalkInPatientInput;
+  serviceId?: string;
+  immediate?: boolean;
+}
+
+export type PaymentMethod =
+  | "CASH"
+  | "CARD"
+  | "BANK_TRANSFER"
+  | "EWALLET"
+  | "OTHER";
+
 export interface PaymentInput {
   appointmentId: string;
   amount: number;
-  method: string;
+  method: PaymentMethod;
   receiptNumber?: string;
   paidAt?: string;
   note?: string;
@@ -158,11 +169,12 @@ export const staffService = {
     return response.data;
   },
 
-  async recordPayment(input: PaymentInput): Promise<ApiEnvelope<Payment>> {
-    const response = await api.post<ApiEnvelope<Payment>>(
-      "/staff/payments",
-      input,
-    );
+  async recordPayment(
+    input: PaymentInput,
+  ): Promise<ApiEnvelope<{ payment: Payment; balance?: unknown }>> {
+    const response = await api.post<
+      ApiEnvelope<{ payment: Payment; balance?: unknown }>
+    >("/staff/payments", input);
     return response.data;
   },
 

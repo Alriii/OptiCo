@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertCircle, CreditCard, RefreshCw, Wallet } from "lucide-react";
 import { toast } from "sonner";
-import { staffService } from "@/services/staff.service";
+import { staffService, type PaymentMethod } from "@/services/staff.service";
 import { getApiError } from "@/lib/api-error";
 import { readList } from "@/lib/api-shape";
 import { formatCurrency, formatDateTime, todayInClinic } from "@/lib/format";
@@ -27,11 +27,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const METHODS = [
+const METHODS: { value: PaymentMethod; label: string }[] = [
   { value: "CASH", label: "Cash" },
   { value: "CARD", label: "Card terminal" },
   { value: "BANK_TRANSFER", label: "Bank transfer" },
-  { value: "E_WALLET", label: "E-wallet" },
+  { value: "EWALLET", label: "E-wallet" },
 ];
 
 const PAYABLE_STATUSES = new Set([
@@ -52,7 +52,7 @@ export default function StaffPaymentsPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const [amount, setAmount] = useState("");
-  const [method, setMethod] = useState("CASH");
+  const [method, setMethod] = useState<PaymentMethod>("CASH");
   const [receiptNumber, setReceiptNumber] = useState("");
   const [paidAt, setPaidAt] = useState(`${todayInClinic()}T09:00`);
   const [note, setNote] = useState("");
@@ -288,7 +288,10 @@ export default function StaffPaymentsPage() {
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="payment-method">Method</FieldLabel>
-                  <Select value={method} onValueChange={setMethod}>
+                  <Select
+                    value={method}
+                    onValueChange={(value) => setMethod(value as PaymentMethod)}
+                  >
                     <SelectTrigger id="payment-method" className="w-full">
                       <SelectValue />
                     </SelectTrigger>

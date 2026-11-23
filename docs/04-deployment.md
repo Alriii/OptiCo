@@ -84,21 +84,23 @@ Project settings:
 | Setting | Value |
 |---|---|
 | Root directory | `frontend` |
-| Framework | Next.js |
+| Framework | Vite |
 | Install | `npm ci` |
 | Build | `npm run build` |
+| Output | `dist` |
 | Node | 24.x |
 
-Environment:
+`frontend/vercel.json` owns two rewrites:
 
-```env
-BACKEND_INTERNAL_URL=https://<api-domain>
-```
+- `/api/:path*` to `https://optico-wsi9.onrender.com/api/:path*`
+- every other path to `/index.html`, so client-side routes survive a refresh
 
-`next.config.ts` rewrites `/api/:path*` to
-`${BACKEND_INTERNAL_URL}/api/:path*`, so the browser only sees the Vercel
-origin. That keeps auth cookies host-only and avoids third-party cookie
-blocking.
+The browser only sees the Vercel origin, which keeps auth cookies first-party and
+avoids third-party cookie blocking. If the Render service URL is different from
+the blueprint name, update the first rewrite.
+
+No Vercel environment variables are required. `BACKEND_INTERNAL_URL` is only
+read by the local Vite proxy.
 
 Checklist after the first deploy:
 
@@ -107,9 +109,8 @@ Checklist after the first deploy:
 - `Set-Cookie` from Render reaches the browser unchanged.
 - Logout clears all four cookies.
 - Guest exchange works and removes the fragment.
-- `/api/v1/health/ready` returns 200 from Render.
-
-Do not add `vercel.json` for the rewrite. Next config owns it.
+- A direct visit to `/admin/services` loads the app instead of a 404.
+- `/api/v1/health/ready` returns 200 through the Vercel origin.
 
 ## Email
 

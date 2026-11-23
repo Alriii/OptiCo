@@ -5,7 +5,7 @@ Optical clinic appointment and operations platform.
 This repository holds the product code and the working record for the project.
 
 ```text
-frontend/   Next.js app, deployed on Vercel with root directory "frontend"
+frontend/   React + Vite SPA, deployed on Vercel with root directory "frontend"
 backend/    Express API, deployed on Render with root directory "backend"
 docs/       audit, contract, decisions, phase log
 ```

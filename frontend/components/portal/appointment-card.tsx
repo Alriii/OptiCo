@@ -21,7 +21,7 @@ export function AppointmentCard({
   const serviceName =
     appointment.serviceName ?? appointment.service?.name ?? "Clinic service";
   const doctorName =
-    appointment.doctorName ?? appointment.doctor?.name ?? null;
+    appointment.doctorName ?? appointment.doctor?.displayName ?? null;
   const when = appointment.startsAt ?? appointment.requestedStartAt;
 
   return (

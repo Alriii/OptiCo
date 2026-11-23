@@ -11,12 +11,12 @@ Each row is a spec area, not a feature wishlist. Status values:
 
 | Area | Frontend | Backend | Notes |
 |---|---|---|---|
-| Framework version | done | done | Next 16.1.4 (Turbopack) / Express 5.2.1 |
+| Framework version | done | done | React 19 + Vite 8 / Express 5.2.1 |
 | Language and types | done | done | TypeScript strict on both repos |
 | UI system | done | n/a | Botanical Premium design tokens + Radix/Tailwind 4 |
 | Env example | done | done | `.env.example` in both `frontend/` and `backend/` |
 | Secret validation at boot | n/a | done | Fails boot on missing secrets or JWT/CSRF collision |
-| API rewrite (same origin) | done | n/a | `next.config.ts` rewrites `/api/*` to `BACKEND_INTERNAL_URL` |
+| API rewrite (same origin) | done | n/a | `vercel.json` rewrites `/api/*` to the Render URL |
 | Health and readiness | n/a | done | `/api/v1/health/live` and `/api/v1/health/ready` (DB probe) |
 | Graceful shutdown | n/a | done | SIGTERM/SIGINT drains pool, stops worker, closes server |
 | Request IDs and logging | done | done | `x-request-id` header tracing & structured JSON logging |

@@ -42,16 +42,14 @@ const SAMPLE_SERVICES: Service[] = [
 const SAMPLE_DOCTORS: Doctor[] = [
   {
     id: "demo-doctor-1",
-    name: "Dr. Sample Santos",
-    title: "Optometrist",
-    credentials: "OD",
+    displayName: "Dr. Sample Santos",
+    credentials: "OD, Optometrist",
     bio: "Sample profile for layout review. Not a real clinician.",
   },
   {
     id: "demo-doctor-2",
-    name: "Dr. Sample Reyes",
-    title: "Optometrist",
-    credentials: "OD",
+    displayName: "Dr. Sample Reyes",
+    credentials: "OD, Optometrist",
     bio: "Sample profile for layout review. Not a real clinician.",
   },
 ];
@@ -185,11 +183,9 @@ export function HomeShowcase() {
                       <Stethoscope className="size-5" aria-hidden="true" />
                     </span>
                     <div>
-                      <h3 className="font-medium">{doctor.name}</h3>
+                      <h3 className="font-medium">{doctor.displayName}</h3>
                       <p className="text-xs text-muted-foreground">
-                        {[doctor.title, doctor.credentials]
-                          .filter(Boolean)
-                          .join(", ") || "Clinic doctor"}
+                        {doctor.credentials || "Clinic doctor"}
                       </p>
                     </div>
                   </div>

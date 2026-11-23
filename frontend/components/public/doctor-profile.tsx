@@ -16,25 +16,22 @@ const SAMPLE: Doctor[] = [
   {
     id: "sample-doctor-1",
     slug: "sample-doctor-santos",
-    name: "Dr. Sample Santos",
-    title: "Optometrist",
-    credentials: "OD",
+    displayName: "Dr. Sample Santos",
+    credentials: "OD, Optometrist",
     bio: "Sample profile for layout review. Not a real clinician or a real clinic record. In a live clinic this section describes approved public background, focus areas, and languages spoken.",
   },
   {
     id: "sample-doctor-2",
     slug: "sample-doctor-reyes",
-    name: "Dr. Sample Reyes",
-    title: "Optometrist",
-    credentials: "OD",
+    displayName: "Dr. Sample Reyes",
+    credentials: "OD, Optometrist",
     bio: "Sample profile for layout review. Not a real clinician or a real clinic record. In a live clinic this section describes approved public background, focus areas, and languages spoken.",
   },
   {
     id: "sample-doctor-3",
     slug: "sample-doctor-cruz",
-    name: "Dr. Sample Cruz",
-    title: "Optometrist",
-    credentials: "OD",
+    displayName: "Dr. Sample Cruz",
+    credentials: "OD, Optometrist",
     bio: "Sample profile for layout review. Not a real clinician or a real clinic record. In a live clinic this section describes approved public background, focus areas, and languages spoken.",
   },
 ];
@@ -123,14 +120,12 @@ export function DoctorProfile({ slug }: { slug: string }) {
             <div className="space-y-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-2xl font-semibold tracking-tight">
-                  {doctor.name}
+                  {doctor.displayName}
                 </h1>
                 {sample ? <Badge variant="outline">Sample profile</Badge> : null}
               </div>
               <p className="text-sm text-muted-foreground">
-                {[doctor.title, doctor.credentials]
-                  .filter(Boolean)
-                  .join(", ") || "Clinic doctor"}
+                {doctor.credentials || "Clinic doctor"}
               </p>
             </div>
 

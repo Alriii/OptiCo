@@ -28,7 +28,7 @@ export const serviceFormSchema = z.object({
   bufferBeforeMinutes: z.number().int().min(0),
   bufferAfterMinutes: z.number().int().min(0),
   fee: z.number().min(0, "Fee cannot be negative."),
-  active: z.boolean(),
+  isActive: z.boolean(),
   displayOrder: z.number().int().min(0),
 });
 
@@ -39,11 +39,10 @@ export const doctorFormSchema = z.object({
     .trim()
     .min(2, "Enter a slug.")
     .regex(/^[a-z0-9-]+$/, "Use lowercase letters, numbers, and hyphens."),
-  title: z.string().trim().max(120).optional(),
   credentials: z.string().trim().max(120).optional(),
   bio: z.string().trim().max(1000).optional(),
   photoUrl: z.string().trim().url("Enter a valid URL.").optional().or(z.literal("")),
-  active: z.boolean(),
+  isActive: z.boolean(),
   email: z.string().trim().email("Enter a valid email address.").optional().or(z.literal("")),
 });
 
@@ -73,6 +72,39 @@ export type StaffInviteInput = z.infer<typeof staffInviteSchema>;
 export type ClosureInput = z.infer<typeof closureSchema>;
 export type SettingsInput = z.infer<typeof settingsSchema>;
 
+/**
+ * The API keeps a staff account name and a public display name. The form
+ * collects one name, so create sends it as both; updates only change the
+ * public profile.
+ */
+function createDoctorPayload(input: DoctorFormInput) {
+  return {
+    email: input.email?.trim(),
+    name: input.name.trim(),
+    displayName: input.name.trim(),
+    slug: input.slug.trim(),
+    credentials: input.credentials?.trim() || undefined,
+    bio: input.bio?.trim() || undefined,
+    photoUrl: input.photoUrl?.trim() || undefined,
+    isActive: input.isActive,
+  };
+}
+
+function updateDoctorPayload(input: Partial<DoctorFormInput>) {
+  const body: Record<string, unknown> = {};
+  if (input.name !== undefined) body.displayName = input.name.trim();
+  if (input.slug !== undefined) body.slug = input.slug.trim();
+  if (input.credentials !== undefined) {
+    body.credentials = input.credentials.trim() || null;
+  }
+  if (input.bio !== undefined) body.bio = input.bio.trim() || null;
+  if (input.photoUrl !== undefined) {
+    body.photoUrl = input.photoUrl.trim() || null;
+  }
+  if (input.isActive !== undefined) body.isActive = input.isActive;
+  return body;
+}
+
 export const adminService = {
   async getOverview(): Promise<ApiEnvelope<AdminOverview>> {
     const response = await api.get<ApiEnvelope<AdminOverview>>("/admin/overview");
@@ -88,8 +120,8 @@ export const adminService = {
 
   async createService(
     input: ServiceFormInput,
-  ): Promise<ApiEnvelope<Service>> {
-    const response = await api.post<ApiEnvelope<Service>>(
+  ): Promise<ApiEnvelope<{ service: Service }>> {
+    const response = await api.post<ApiEnvelope<{ service: Service }>>(
       "/admin/services",
       input,
     );
@@ -99,8 +131,8 @@ export const adminService = {
   async updateService(
     id: string,
     input: Partial<ServiceFormInput>,
-  ): Promise<ApiEnvelope<Service>> {
-    const response = await api.patch<ApiEnvelope<Service>>(
+  ): Promise<ApiEnvelope<{ service: Service }>> {
+    const response = await api.patch<ApiEnvelope<{ service: Service }>>(
       `/admin/services/${id}`,
       input,
     );
@@ -116,10 +148,10 @@ export const adminService = {
 
   async createDoctor(
     input: DoctorFormInput,
-  ): Promise<ApiEnvelope<Doctor>> {
-    const response = await api.post<ApiEnvelope<Doctor>>(
+  ): Promise<ApiEnvelope<{ doctor: Doctor }>> {
+    const response = await api.post<ApiEnvelope<{ doctor: Doctor }>>(
       "/admin/doctors",
-      input,
+      createDoctorPayload(input),
     );
     return response.data;
   },
@@ -127,10 +159,10 @@ export const adminService = {
   async updateDoctor(
     id: string,
     input: Partial<DoctorFormInput>,
-  ): Promise<ApiEnvelope<Doctor>> {
-    const response = await api.patch<ApiEnvelope<Doctor>>(
+  ): Promise<ApiEnvelope<{ doctor: Doctor }>> {
+    const response = await api.patch<ApiEnvelope<{ doctor: Doctor }>>(
       `/admin/doctors/${id}`,
-      input,
+      updateDoctorPayload(input),
     );
     return response.data;
   },
@@ -138,8 +170,8 @@ export const adminService = {
   async setDoctorServices(
     id: string,
     serviceIds: string[],
-  ): Promise<ApiEnvelope<Doctor>> {
-    const response = await api.put<ApiEnvelope<Doctor>>(
+  ): Promise<ApiEnvelope<{ serviceIds: string[] }>> {
+    const response = await api.put<ApiEnvelope<{ serviceIds: string[] }>>(
       `/admin/doctors/${id}/services`,
       { serviceIds },
     );
