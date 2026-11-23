@@ -241,15 +241,6 @@ export function LoginForm({
             Create an account
           </Link>
         </p>
-        <p>
-          Booked as a guest?{" "}
-          <Link
-            href="/guest/manage"
-            className="font-medium text-primary underline-offset-4 hover:underline"
-          >
-            Manage via access code
-          </Link>
-        </p>
       </div>
     </div>
   );

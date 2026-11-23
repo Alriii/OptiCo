@@ -350,11 +350,7 @@ export function BookingFlow({ initialServiceId }: { initialServiceId?: string })
               <Button asChild variant="outline">
                 <Link href="/patient/appointments">View my appointments</Link>
               </Button>
-            ) : (
-              <Button asChild variant="outline">
-                <Link href="/guest/manage">Manage guest booking</Link>
-              </Button>
-            )}
+            ) : null}
           </div>
         </CardContent>
       </Card>

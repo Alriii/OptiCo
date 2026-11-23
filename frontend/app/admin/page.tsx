@@ -22,7 +22,6 @@ import { usePageMeta } from "@/lib/use-page-meta";
 
 const QUICK_LINKS = [
   { href: "/admin/doctors", label: "Doctors and services" },
-  { href: "/admin/staff", label: "Staff invitations" },
   { href: "/admin/services", label: "Service catalog" },
   { href: "/admin/schedules", label: "Clinic schedules" },
   { href: "/admin/settings", label: "Clinic settings" },

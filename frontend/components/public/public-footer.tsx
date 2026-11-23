@@ -44,9 +44,6 @@ export function PublicFooter() {
           <Link href="/booking" className="block text-muted-foreground hover:text-foreground">
             Book a visit
           </Link>
-          <Link href="/guest/manage" className="block text-muted-foreground hover:text-foreground">
-            Manage a guest booking
-          </Link>
         </div>
 
         <div className="space-y-2 text-sm">
