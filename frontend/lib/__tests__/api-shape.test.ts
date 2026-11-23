@@ -10,6 +10,9 @@ describe("tolerant API shape readers", () => {
     expect(readList<{ id: string }>({ items: [{ id: "c" }] })).toEqual([
       { id: "c" },
     ]);
+    expect(readList<{ id: string }>({ rows: [{ id: "d" }] })).toEqual([
+      { id: "d" },
+    ]);
     expect(readList({ unexpected: true })).toEqual([]);
   });
 

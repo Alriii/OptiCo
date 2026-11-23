@@ -65,7 +65,7 @@ export function StaffAppointments({
         date: date || undefined,
         page,
       });
-      setAppointments(readList<Appointment>(response.data, "appointments"));
+      setAppointments(readList<Appointment>(response.data, "appointments", "rows"));
       setTotal(
         readNumber(response.data, "total") ??
           readNumber(response.data, "count"),

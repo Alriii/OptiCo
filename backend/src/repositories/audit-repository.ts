@@ -44,6 +44,6 @@ export class AuditRepository {
       .offset((page - 1) * limit);
 
     const [totalRow] = await db.select({ total: count() }).from(auditLogs).where(where);
-    return { rows, total: Number(totalRow.total) };
+    return { rows, logs: rows, auditLogs: rows, total: Number(totalRow.total) };
   }
 }

@@ -73,7 +73,7 @@ export default function StaffPaymentsPage() {
     setError(null);
     try {
       const response = await staffService.getAppointments({ page: 1 });
-      const list = readList<Appointment>(response.data, "appointments").filter(
+      const list = readList<Appointment>(response.data, "appointments", "rows").filter(
         (item) => PAYABLE_STATUSES.has(item.status.toUpperCase()),
       );
       setAppointments(list);

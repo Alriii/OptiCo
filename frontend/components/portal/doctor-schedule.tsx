@@ -36,7 +36,7 @@ export function DoctorSchedule({
     setError(null);
     try {
       const response = await doctorService.getSchedule(date);
-      setAppointments(readList<Appointment>(response.data, "appointments"));
+      setAppointments(readList<Appointment>(response.data, "appointments", "rows"));
     } catch (err) {
       setError(getApiError(err, "The schedule could not be loaded."));
     } finally {

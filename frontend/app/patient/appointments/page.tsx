@@ -37,7 +37,7 @@ export default function PatientAppointmentsPage() {
     setError(null);
     try {
       const response = await patientService.getAppointments();
-      setAppointments(readList<Appointment>(response.data, "appointments"));
+      setAppointments(readList<Appointment>(response.data, "appointments", "rows"));
     } catch (err) {
       setError(getApiError(err, "Your appointments could not be loaded."));
     } finally {

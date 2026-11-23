@@ -190,7 +190,7 @@ export class AppointmentRepository {
       .innerJoin(patients, eq(appointments.patientId, patients.id))
       .where(where);
 
-    return { rows, total: Number(totalRow.total) };
+    return { rows, appointments: rows, total: Number(totalRow.total) };
   }
 
   async listForPatient(patientId: string, page: number, limit: number) {

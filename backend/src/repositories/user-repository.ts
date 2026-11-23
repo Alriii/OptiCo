@@ -106,7 +106,7 @@ export class UserRepository {
       .offset(offset);
 
     const [{ total }] = await db.select({ total: count() }).from(users).where(where);
-    return { rows, total: Number(total) };
+    return { rows, users: rows, staff: rows, total: Number(total) };
   }
 
   async countByRole(role: UserRole) {

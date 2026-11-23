@@ -17,6 +17,7 @@ export function readList<T>(
     if (Array.isArray(value)) return value as T[];
   }
 
+  if (Array.isArray(record.rows)) return record.rows as T[];
   if (Array.isArray(record.items)) return record.items as T[];
   if (Array.isArray(record.results)) return record.results as T[];
   if (Array.isArray(record.data)) return record.data as T[];

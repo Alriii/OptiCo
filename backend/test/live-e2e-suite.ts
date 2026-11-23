@@ -104,7 +104,7 @@ async function runLiveVerification() {
   console.log("      Testing through Next.js Proxy: http://localhost:3001        ");
   console.log("==================================================================\n");
 
-  const BASE_URL = "http://localhost:3001";
+  const BASE_URL = process.env.TEST_BASE_URL || "http://localhost:7000";
   const client = new HttpClient(BASE_URL);
 
   let passedTests = 0;
