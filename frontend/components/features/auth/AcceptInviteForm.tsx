@@ -40,29 +40,28 @@ export function AcceptInviteForm({ token }: { token?: string }) {
   };
 
   return (
-    <div className="w-full rounded-3xl border border-border/80 bg-card/95 p-8 sm:p-10 shadow-sm sm:shadow-xl sm:shadow-primary/[0.04] backdrop-blur-xs transition-all">
+    <div className="w-full space-y-6">
       {/* Clean Minimalist Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+      <div className="space-y-1.5">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
           Accept invitation
         </h1>
-        <p className="mt-1.5 text-xs sm:text-sm text-muted-foreground">
-          Set a secure password for your clinic staff account
+        <p className="text-sm text-muted-foreground">
+          Set a secure password for your clinic account.
         </p>
       </div>
 
       <div className="space-y-4">
         {!token ? (
-          <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
-            No invitation token was found in this link. Open the link from your
-            invitation email.
+          <p className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-3.5 py-2.5 text-xs text-amber-900 dark:text-amber-200">
+            No invitation token was found in this link. Open the link from your invitation email.
           </p>
         ) : null}
 
         {formError ? (
           <p
             role="alert"
-            className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive"
+            className="flex items-start gap-2.5 rounded-lg border border-destructive/20 bg-destructive/10 px-3.5 py-2.5 text-xs text-destructive"
           >
             <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
             {formError}
@@ -72,11 +71,11 @@ export function AcceptInviteForm({ token }: { token?: string }) {
         <form id="accept-invite-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
           <FieldGroup>
             <Field data-invalid={Boolean(form.formState.errors.token)}>
-              <FieldLabel htmlFor="invite-token" className="text-xs">Invitation token</FieldLabel>
+              <FieldLabel htmlFor="invite-token" className="text-xs font-medium text-foreground/90">Invitation token</FieldLabel>
               <Input
                 id="invite-token"
                 autoComplete="off"
-                className="h-10 rounded-xl font-mono text-xs"
+                className="h-10 rounded-lg border-input bg-background font-mono text-xs shadow-2xs focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary"
                 aria-invalid={Boolean(form.formState.errors.token)}
                 {...form.register("token")}
               />
@@ -84,13 +83,13 @@ export function AcceptInviteForm({ token }: { token?: string }) {
             </Field>
 
             <Field data-invalid={Boolean(form.formState.errors.password)}>
-              <FieldLabel htmlFor="invite-password" className="text-xs">New password</FieldLabel>
+              <FieldLabel htmlFor="invite-password" className="text-xs font-medium text-foreground/90">New password</FieldLabel>
               <Input
                 id="invite-password"
                 type="password"
                 autoComplete="new-password"
                 placeholder="Choose a strong password"
-                className="h-10 rounded-xl"
+                className="h-10 rounded-lg border-input bg-background text-sm shadow-2xs focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary"
                 aria-invalid={Boolean(form.formState.errors.password)}
                 {...form.register("password")}
               />
@@ -101,7 +100,7 @@ export function AcceptInviteForm({ token }: { token?: string }) {
           <Button
             type="submit"
             form="accept-invite-form"
-            className="mt-2 h-10 w-full rounded-xl text-sm font-medium shadow-xs transition-transform active:scale-[0.99]"
+            className="h-10 w-full rounded-lg text-sm font-medium shadow-xs transition-colors"
             disabled={form.formState.isSubmitting}
           >
             {form.formState.isSubmitting ? (
@@ -116,14 +115,12 @@ export function AcceptInviteForm({ token }: { token?: string }) {
         </form>
       </div>
 
-      <div className="mt-6 border-t border-border/60 pt-4 text-center text-xs text-muted-foreground">
-        <p>
-          Already activated?{" "}
-          <Link href="/login" className="font-medium text-primary underline-offset-4 hover:underline">
-            Sign in
-          </Link>
-        </p>
-      </div>
+      <p className="pt-2 text-center text-xs text-muted-foreground">
+        Already activated?{" "}
+        <Link href="/login" className="font-medium text-foreground underline underline-offset-4 hover:text-primary transition-colors">
+          Sign in
+        </Link>
+      </p>
     </div>
   );
 }

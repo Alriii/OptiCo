@@ -36,18 +36,14 @@ export function SignupForm() {
   };
 
   return (
-    <div className="w-full rounded-2xl border border-border/70 bg-card/95 p-7 sm:p-9 shadow-md shadow-primary/[0.03] backdrop-blur-sm transition-all">
+    <div className="w-full space-y-6">
       {/* Clean Minimalist Header */}
-      <div className="mb-6 space-y-1.5">
-        <div className="inline-flex items-center gap-1.5 rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-medium tracking-wide text-primary">
-          <span className="size-1.5 rounded-full bg-primary" />
-          Patient Registration
-        </div>
-        <h1 className="text-2xl sm:text-[26px] font-semibold tracking-tight text-foreground">
+      <div className="space-y-1.5">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
           Create an account
         </h1>
-        <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-          Register for convenient patient appointments and visit history.
+        <p className="text-sm text-muted-foreground">
+          Register to book patient appointments and access visit history.
         </p>
       </div>
 
@@ -55,7 +51,7 @@ export function SignupForm() {
         {formError ? (
           <p
             role="alert"
-            className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive"
+            className="flex items-start gap-2.5 rounded-lg border border-destructive/20 bg-destructive/10 px-3.5 py-2.5 text-xs text-destructive"
           >
             <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
             {formError}
@@ -65,12 +61,12 @@ export function SignupForm() {
         <form id="signup-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
           <FieldGroup>
             <Field data-invalid={Boolean(form.formState.errors.name)}>
-              <FieldLabel htmlFor="signup-name" className="text-xs">Full name</FieldLabel>
+              <FieldLabel htmlFor="signup-name" className="text-xs font-medium text-foreground/90">Full name</FieldLabel>
               <Input
                 id="signup-name"
                 autoComplete="name"
                 placeholder="e.g. Maria Santos"
-                className="h-10 rounded-xl"
+                className="h-10 rounded-lg border-input bg-background text-sm shadow-2xs placeholder:text-muted-foreground/40 focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary"
                 aria-invalid={Boolean(form.formState.errors.name)}
                 {...form.register("name")}
               />
@@ -78,13 +74,13 @@ export function SignupForm() {
             </Field>
 
             <Field data-invalid={Boolean(form.formState.errors.email)}>
-              <FieldLabel htmlFor="signup-email" className="text-xs">Email address</FieldLabel>
+              <FieldLabel htmlFor="signup-email" className="text-xs font-medium text-foreground/90">Email address</FieldLabel>
               <Input
                 id="signup-email"
                 type="email"
                 autoComplete="email"
                 placeholder="name@example.com"
-                className="h-10 rounded-xl"
+                className="h-10 rounded-lg border-input bg-background text-sm shadow-2xs placeholder:text-muted-foreground/40 focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary"
                 aria-invalid={Boolean(form.formState.errors.email)}
                 {...form.register("email")}
               />
@@ -92,17 +88,17 @@ export function SignupForm() {
             </Field>
 
             <Field data-invalid={Boolean(form.formState.errors.password)}>
-              <FieldLabel htmlFor="signup-password" className="text-xs">Password</FieldLabel>
+              <FieldLabel htmlFor="signup-password" className="text-xs font-medium text-foreground/90">Password</FieldLabel>
               <Input
                 id="signup-password"
                 type="password"
                 autoComplete="new-password"
                 placeholder="At least 8 characters"
-                className="h-10 rounded-xl"
+                className="h-10 rounded-lg border-input bg-background text-sm shadow-2xs placeholder:text-muted-foreground/40 focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary"
                 aria-invalid={Boolean(form.formState.errors.password)}
                 {...form.register("password")}
               />
-              <FieldDescription className="text-[11px]">
+              <FieldDescription className="text-[11px] text-muted-foreground/80">
                 Must include at least 8 characters, one uppercase letter, and one number.
               </FieldDescription>
               <FieldError errors={[form.formState.errors.password]} />
@@ -112,7 +108,7 @@ export function SignupForm() {
           <Button
             type="submit"
             form="signup-form"
-            className="mt-2 h-10 w-full rounded-xl text-sm font-medium shadow-xs transition-transform active:scale-[0.99]"
+            className="h-10 w-full rounded-lg text-sm font-medium shadow-xs transition-colors"
             disabled={form.formState.isSubmitting}
           >
             {form.formState.isSubmitting ? (
@@ -127,21 +123,21 @@ export function SignupForm() {
         </form>
       </div>
 
-      <div className="mt-6 space-y-2 border-t border-border/60 pt-4 text-center text-xs text-muted-foreground">
+      <div className="space-y-2 pt-2 text-center text-xs text-muted-foreground">
         <p>
           Already have an account?{" "}
-          <Link href="/login" className="font-medium text-primary underline-offset-4 hover:underline">
+          <Link href="/login" className="font-medium text-foreground underline underline-offset-4 hover:text-primary transition-colors">
             Sign in
           </Link>
         </p>
-        <p className="text-[11px] leading-relaxed text-muted-foreground/75">
-          By continuing you acknowledge the{" "}
-          <Link href="/policies/privacy" className="underline underline-offset-4">
-            privacy notice
+        <p className="text-[11px] text-muted-foreground/75">
+          By continuing you acknowledge our{" "}
+          <Link href="/policies/privacy" className="underline underline-offset-4 hover:text-foreground">
+            privacy policy
           </Link>{" "}
           and{" "}
-          <Link href="/policies/terms" className="underline underline-offset-4">
-            terms of use
+          <Link href="/policies/terms" className="underline underline-offset-4 hover:text-foreground">
+            terms
           </Link>
           .
         </p>
