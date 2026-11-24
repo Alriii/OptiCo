@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { AlertCircle, CalendarCheck, CalendarPlus, Clock3, RefreshCw } from "lucide-react";
+import { AlertCircle, CalendarCheck, Clock3, RefreshCw } from "lucide-react";
 import { patientService } from "@/services/patient.service";
 import { getApiError } from "@/lib/api-error";
 import { readList } from "@/lib/api-shape";
@@ -71,13 +71,6 @@ export default function PatientDashboardPage() {
         eyebrow="Overview"
         title={`Hello${user?.name ? `, ${user.name.split(" ")[0]}` : ""}`}
         description="Your requests, confirmed visits, and appointment references in one place."
-        actions={
-          <Button asChild>
-            <Link href="/booking">
-              <CalendarPlus className="size-4" /> Request appointment
-            </Link>
-          </Button>
-        }
       />
 
       {/* Dr. Octo Care Pill Banner */}
@@ -158,7 +151,7 @@ export default function PatientDashboardPage() {
               <EmptyState
                 icon={CalendarCheck}
                 title="No upcoming appointments"
-                description="You don't have any pending requests or scheduled visits. Use the Request appointment button above to book your next consultation."
+                description="You don't have any pending requests or scheduled visits on your record."
               />
             ) : (
               <div className="grid gap-3">
