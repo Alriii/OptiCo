@@ -2,81 +2,66 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import {
   AlertCircle,
   ArrowLeft,
   ArrowRight,
+  Calendar,
   CalendarCheck,
   CheckCircle2,
   Clock,
-  Info,
+  MapPin,
   RefreshCw,
+  ShieldCheck,
+  Sparkles,
+  UserCheck,
 } from "lucide-react";
 import { toast } from "sonner";
-import { publicService, bookingDetailsSchema, type BookingDetails } from "@/services/public.service";
+import { publicService } from "@/services/public.service";
 import { patientService } from "@/services/patient.service";
 import { getApiError, isConflictError } from "@/lib/api-error";
 import { readList } from "@/lib/api-shape";
-import { requiresGuardian } from "@/lib/booking";
 import { formatCurrency, formatDate, formatTime, todayInClinic } from "@/lib/format";
 import { useAuth } from "@/context/AuthContext";
 import type { AvailabilitySlot, Service } from "@/services/types";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { LoadingState } from "@/components/shared/loading-state";
 import { EmptyState } from "@/components/shared/empty-state";
 import { cn } from "@/lib/utils";
 import { getServicePhoto } from "@/lib/clinic-media";
 import { CLINICAL_SERVICES } from "@/components/public/services-directory";
 
-const STEPS = ["Service", "Date", "Time", "Details", "Review"] as const;
-
-const DEFAULT_VALUES: BookingDetails = {
-  fullName: "",
-  email: "",
-  mobile: "",
-  dateOfBirth: "",
-  note: "",
-  guardianName: "",
-  guardianRelationship: "",
-  guardianContact: "",
-};
+const STEPS = [
+  { id: 1, label: "Choose Service" },
+  { id: 2, label: "Date & Time" },
+  { id: 3, label: "Review & Confirm" },
+] as const;
 
 export function BookingFlow({ initialServiceId }: { initialServiceId?: string }) {
   const { user } = useAuth();
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [services, setServices] = useState<Service[]>([]);
   const [loadingServices, setLoadingServices] = useState(true);
   const [servicesError, setServicesError] = useState<string | null>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
-  const [date, setDate] = useState("");
+
+  const [date, setDate] = useState(() => todayInClinic());
   const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [slotsError, setSlotsError] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<AvailabilitySlot | null>(null);
+
+  const [note, setNote] = useState("");
+  const [patientMobile, setPatientMobile] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [conflict, setConflict] = useState(false);
   const [result, setResult] = useState<{ reference?: string; id?: string } | null>(null);
-  const [prefilled, setPrefilled] = useState(false);
-
-  const form = useForm<BookingDetails>({
-    resolver: zodResolver(bookingDetailsSchema),
-    defaultValues: DEFAULT_VALUES,
-    mode: "onBlur",
-  });
-
-  const dateOfBirth = form.watch("dateOfBirth");
-  const guardianRequired = useMemo(
-    () => requiresGuardian(dateOfBirth, date || undefined),
-    [dateOfBirth, date],
-  );
 
   const minDate = todayInClinic();
   const maxDate = useMemo(() => {
@@ -105,7 +90,6 @@ export function BookingFlow({ initialServiceId }: { initialServiceId?: string })
         }
       })
       .catch((error) => {
-        // Fallback to verified clinical care services if network is slow
         setServices(CLINICAL_SERVICES);
         if (initialServiceId) {
           const match = CLINICAL_SERVICES.find(
@@ -116,9 +100,7 @@ export function BookingFlow({ initialServiceId }: { initialServiceId?: string })
             setStep(2);
           }
         } else {
-          setServicesError(
-            getApiError(error, "Services could not be loaded. Please try again."),
-          );
+          setServicesError(getApiError(error, "Services could not be loaded."));
         }
       })
       .finally(() => setLoadingServices(false));
@@ -129,28 +111,20 @@ export function BookingFlow({ initialServiceId }: { initialServiceId?: string })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Fetch patient profile to pre-fill verified mobile contact
   useEffect(() => {
-    if (!user || user.role.toUpperCase() !== "PATIENT" || prefilled) return;
-
+    if (!user) return;
     patientService
       .getProfile()
       .then((response) => {
-        const profile = response.data;
-        if (!profile) return;
-        form.reset({
-          ...DEFAULT_VALUES,
-          fullName: profile.fullName ?? "",
-          email: profile.email ?? "",
-          mobile: profile.mobile ?? "",
-          dateOfBirth: profile.dateOfBirth ?? "",
-        });
-        setPrefilled(true);
+        if (response.data?.mobile) {
+          setPatientMobile(response.data.mobile);
+        }
       })
-      .catch(() => {
-        // Prefill is a convenience; the form still works without it.
-      });
-  }, [user, prefilled, form]);
+      .catch(() => {});
+  }, [user]);
 
+  // Fetch slots whenever service and date change
   useEffect(() => {
     if (!selectedService || !date) return;
 
@@ -168,9 +142,7 @@ export function BookingFlow({ initialServiceId }: { initialServiceId?: string })
       .catch((error) => {
         if (cancelled) return;
         setSlots([]);
-        setSlotsError(
-          getApiError(error, "Available times could not be loaded for this date."),
-        );
+        setSlotsError(getApiError(error, "Available times could not be loaded for this date."));
       })
       .finally(() => {
         if (!cancelled) setLoadingSlots(false);
@@ -181,94 +153,26 @@ export function BookingFlow({ initialServiceId }: { initialServiceId?: string })
     };
   }, [selectedService, date]);
 
-  const goBack = () => {
-    setSubmitError(null);
-    setConflict(false);
-    setStep((current) => Math.max(1, current - 1));
-  };
-
-  const continueFromDetails = async () => {
-    const valid = await form.trigger();
-    if (!valid) return;
-
-    if (guardianRequired) {
-      const values = form.getValues();
-      let hasError = false;
-
-      if (!values.guardianName?.trim()) {
-        form.setError("guardianName", {
-          message: "Guardian name is required for a minor patient.",
-        });
-        hasError = true;
-      }
-      if (!values.guardianRelationship?.trim()) {
-        form.setError("guardianRelationship", {
-          message: "Guardian relationship is required.",
-        });
-        hasError = true;
-      }
-      if (!values.guardianContact?.trim()) {
-        form.setError("guardianContact", {
-          message: "Guardian contact is required.",
-        });
-        hasError = true;
-      }
-      if (hasError) return;
-    }
-
-    setStep(5);
-  };
-
   const submit = async () => {
     if (!selectedService || !selectedSlot) return;
-
-    const values = form.getValues();
-    if (guardianRequired && (!values.guardianName || !values.guardianContact)) {
-      setStep(4);
-      toast.error("Guardian details are required for a minor patient.");
-      return;
-    }
 
     setSubmitting(true);
     setSubmitError(null);
     setConflict(false);
 
-    const note = values.note?.trim() || undefined;
-    const isRegisteredPatient = user?.role.toUpperCase() === "PATIENT";
-
     try {
-      const response = isRegisteredPatient
-        ? await patientService.requestAppointment({
-            serviceId: selectedService.id,
-            startAt: selectedSlot.startAt,
-            note,
-          })
-        : await publicService.createAppointment({
-            serviceId: selectedService.id,
-            startAt: selectedSlot.startAt,
-            note,
-            patient: {
-              fullName: values.fullName.trim(),
-              email: values.email.trim(),
-              mobile: values.mobile.trim() || undefined,
-              dateOfBirth: values.dateOfBirth || undefined,
-              guardianName: guardianRequired
-                ? values.guardianName?.trim() || undefined
-                : undefined,
-              guardianRelationship: guardianRequired
-                ? values.guardianRelationship?.trim() || undefined
-                : undefined,
-              guardianContact: guardianRequired
-                ? values.guardianContact?.trim() || undefined
-                : undefined,
-            },
-          });
+      const response = await patientService.requestAppointment({
+        serviceId: selectedService.id,
+        startAt: selectedSlot.startAt,
+        note: note.trim() || undefined,
+      });
 
       setResult({
-        reference: response.data.reference,
-        id: response.data.id,
+        reference: response.data?.reference,
+        id: response.data?.id,
       });
-      setStep(6);
+      setStep(4);
+      toast.success("Appointment request submitted successfully!");
     } catch (error) {
       setSubmitError(getApiError(error, "The request could not be submitted."));
       setConflict(isConflictError(error));
@@ -278,78 +182,85 @@ export function BookingFlow({ initialServiceId }: { initialServiceId?: string })
   };
 
   if (loadingServices) {
-    return <LoadingState title="Loading services" description="Getting the clinic menu ready." />;
+    return <LoadingState title="Loading clinical service catalog…" />;
   }
 
   if (servicesError) {
     return (
-      <Card>
-        <CardContent className="space-y-4 px-6 py-8">
-          <div role="alert" className="flex items-start gap-2 text-sm text-destructive">
-            <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-            <p>{servicesError}</p>
+      <Card className="rounded-2xl border-destructive/30 bg-destructive/5 p-6">
+        <div role="alert" className="flex items-start gap-3 text-destructive">
+          <AlertCircle className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+          <div className="space-y-2">
+            <p className="font-semibold">{servicesError}</p>
+            <p className="text-sm text-muted-foreground">
+              Please retry or contact our clinic front desk directly.
+            </p>
+            <Button type="button" variant="outline" size="sm" onClick={loadServices} className="mt-2">
+              <RefreshCw className="size-4 mr-2" /> Try again
+            </Button>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Booking needs live service and availability data. Please retry, or
-            call the clinic if the problem continues.
-          </p>
-          <Button type="button" onClick={loadServices}>
-            <RefreshCw className="size-4" /> Try again
-          </Button>
-        </CardContent>
+        </div>
       </Card>
     );
   }
 
-  if (step === 6 && result) {
+  // Step 4: Success / Confirmation
+  if (step === 4 && result) {
     return (
-      <Card className="mx-auto max-w-2xl">
-        <CardContent className="space-y-5 px-6 py-8">
-          <span className="flex size-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-200">
-            <CheckCircle2 className="size-6" aria-hidden="true" />
-          </span>
+      <Card className="mx-auto max-w-2xl rounded-2xl border-border/80 shadow-md">
+        <CardContent className="space-y-6 px-6 py-10 sm:px-10">
+          <div className="flex size-14 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/20">
+            <CheckCircle2 className="size-8" aria-hidden="true" />
+          </div>
+
           <div className="space-y-2">
-            <h2 className="text-2xl font-semibold tracking-tight">
-              Request received
+            <h2 className="text-3xl font-bold tracking-tight text-foreground">
+              Appointment Request Submitted
             </h2>
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              Your appointment request is now awaiting clinic review. This is
-              not a confirmed schedule yet.
+            <p className="text-sm sm:text-base leading-relaxed text-muted-foreground">
+              Your request has been routed to our clinic team. You will receive an immediate notification once reviewed and assigned.
             </p>
           </div>
 
-          <div className="rounded-xl border bg-secondary/60 px-4 py-3 text-sm">
-            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-              Booking reference
-            </p>
-            <p className="mt-1 font-mono text-lg font-semibold">
-              {result.reference ?? result.id ?? "Provided by email"}
-            </p>
-            <p className="mt-2 text-muted-foreground">
-              {selectedService?.name} · {formatDate(date)} ·{" "}
-              {selectedSlot?.label ?? formatTime(selectedSlot?.startAt)}
-            </p>
-          </div>
-
-          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
-            <p className="flex items-start gap-2">
-              <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-              <span>
-                The clinic will email you when the request is approved or
-                rejected.
+          <div className="rounded-2xl border border-border/80 bg-secondary/30 p-5 space-y-3">
+            <div className="flex items-center justify-between border-b border-border/60 pb-3">
+              <span className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+                Booking Reference
               </span>
-            </p>
+              <span className="font-mono text-base font-bold text-foreground">
+                {result.reference ?? result.id ?? "Registered"}
+              </span>
+            </div>
+
+            <div className="grid gap-2 text-sm text-muted-foreground pt-1">
+              <div className="flex items-center justify-between">
+                <span>Selected Service</span>
+                <span className="font-semibold text-foreground">{selectedService?.name}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Scheduled Date</span>
+                <span className="font-semibold text-foreground">{formatDate(date)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Time Slot</span>
+                <span className="font-semibold text-foreground">
+                  {selectedSlot?.label ?? formatTime(selectedSlot?.startAt)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Location</span>
+                <span className="text-foreground">OptiCo Clinic · Makati City</span>
+              </div>
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <Button asChild>
-              <Link href="/">Back to home</Link>
+          <div className="flex flex-wrap gap-3 pt-2">
+            <Button asChild size="lg" className="rounded-xl shadow-xs cursor-pointer">
+              <Link href="/patient/appointments">View In My Appointments</Link>
             </Button>
-            {user ? (
-              <Button asChild variant="outline">
-                <Link href="/patient/appointments">View my appointments</Link>
-              </Button>
-            ) : null}
+            <Button asChild variant="outline" size="lg" className="rounded-xl cursor-pointer">
+              <Link href="/">Back to Home</Link>
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -357,61 +268,66 @@ export function BookingFlow({ initialServiceId }: { initialServiceId?: string })
   }
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-xl border bg-secondary/50 px-4 py-3 text-sm">
-        <p className="flex items-start gap-2 text-muted-foreground">
-          <Info className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
-          <span>
-            <strong className="font-medium text-foreground">
-              Appointment request only.
-            </strong>{" "}
-            Your schedule is confirmed after clinic approval. A requested slot
-            is not reserved.
-          </span>
-        </p>
-      </div>
+    <div className="space-y-8">
+      {/* Sleek Modern Stepper Progress Bar */}
+      <nav aria-label="Booking steps" className="border-b border-border/70 pb-6">
+        <ol className="flex flex-wrap items-center gap-3 sm:gap-6 text-sm">
+          {STEPS.map((s, idx) => {
+            const isCurrent = step === s.id;
+            const isDone = step > s.id;
+            return (
+              <li key={s.id} className="flex items-center gap-3">
+                <div
+                  className={cn(
+                    "flex items-center gap-2.5 transition-colors",
+                    isCurrent && "font-semibold text-foreground",
+                    isDone && "text-muted-foreground hover:text-foreground cursor-pointer",
+                    !isCurrent && !isDone && "text-muted-foreground/50",
+                  )}
+                  onClick={() => {
+                    if (isDone) setStep(s.id as 1 | 2 | 3);
+                  }}
+                >
+                  <span
+                    className={cn(
+                      "flex size-7 items-center justify-center rounded-full text-xs font-bold transition-all",
+                      isCurrent && "bg-primary text-primary-foreground shadow-xs ring-2 ring-primary/20",
+                      isDone && "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold",
+                      !isCurrent && !isDone && "bg-muted text-muted-foreground/60",
+                    )}
+                  >
+                    {isDone ? "✓" : s.id}
+                  </span>
+                  <span className="text-sm">{s.label}</span>
+                </div>
+                {idx < STEPS.length - 1 ? (
+                  <span className="text-muted-foreground/30 font-light hidden sm:inline">/</span>
+                ) : null}
+              </li>
+            );
+          })}
+        </ol>
+      </nav>
 
-      <ol className="grid grid-cols-5 gap-1 text-center text-[11px] sm:text-xs" aria-label="Booking steps">
-        {STEPS.map((label, index) => {
-          const number = index + 1;
-          const state = number === step ? "current" : number < step ? "done" : "upcoming";
-          return (
-            <li
-              key={label}
-              aria-current={state === "current" ? "step" : undefined}
-              className={cn(
-                "rounded-md border px-1 py-2",
-                state === "current" && "border-primary bg-primary text-primary-foreground",
-                state === "done" && "border-primary/30 bg-background text-primary",
-                state === "upcoming" && "bg-background text-muted-foreground",
-              )}
-            >
-              <span className="block font-semibold">{number}</span>
-              {label}
-            </li>
-          );
-        })}
-      </ol>
-
+      {/* STEP 1: SELECT CLINICAL SERVICE */}
       {step === 1 ? (
-        <section className="space-y-4" aria-labelledby="choose-service">
+        <section className="space-y-6" aria-labelledby="choose-service">
           <div>
-            <h2 id="choose-service" className="text-lg font-semibold">
-              Choose a service
+            <h2 id="choose-service" className="text-2xl font-bold tracking-tight text-foreground">
+              Choose a Service
             </h2>
-            <p className="text-sm text-muted-foreground">
-              Fees and durations are set by the clinic. You will not choose a
-              doctor.
+            <p className="text-sm text-muted-foreground mt-1">
+              Select the examination or optical consultation that fits your vision needs.
             </p>
           </div>
 
           {services.length === 0 ? (
             <EmptyState
-              title="No active services"
-              description="The clinic has not published any bookable services yet."
+              title="No services published"
+              description="The clinic does not currently have active services open for online booking."
             />
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-6 sm:grid-cols-2">
               {services.map((service) => {
                 const selected = selectedService?.id === service.id;
                 const photo = getServicePhoto(service.name);
@@ -425,30 +341,43 @@ export function BookingFlow({ initialServiceId }: { initialServiceId?: string })
                     }}
                     aria-pressed={selected}
                     className={cn(
-                      "group overflow-hidden rounded-2xl border border-border/80 bg-card text-left transition-all hover:border-primary/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                      selected && "border-primary ring-2 ring-primary/40 shadow-sm",
+                      "group overflow-hidden rounded-2xl border border-border/80 bg-card text-left transition-all hover:border-primary/50 hover:shadow-lg focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring cursor-pointer flex flex-col justify-between",
+                      selected && "border-primary ring-2 ring-primary/40 shadow-md",
                     )}
                   >
-                    <div className="relative aspect-[16/9] overflow-hidden bg-secondary">
-                      <img
-                        src={photo}
-                        alt={service.name}
-                        className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        loading="lazy"
-                      />
-                      <div className="absolute top-2.5 right-2.5 rounded-full bg-background/90 px-2.5 py-1 text-xs font-semibold text-foreground backdrop-blur-xs shadow-xs">
-                        {formatCurrency(service.fee)}
+                    <div>
+                      {/* Image Preview with Fee Pill */}
+                      <div className="relative aspect-[16/10] overflow-hidden bg-secondary">
+                        <img
+                          src={photo}
+                          alt={service.name}
+                          className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          loading="lazy"
+                        />
+                        <div className="absolute top-3 right-3 rounded-full bg-background/90 px-3 py-1 text-sm font-bold text-foreground backdrop-blur-md shadow-xs ring-1 ring-border/50">
+                          {formatCurrency(service.fee)}
+                        </div>
+                      </div>
+
+                      {/* Content */}
+                      <div className="p-5 space-y-2">
+                        <h3 className="text-lg font-bold text-foreground tracking-tight group-hover:text-primary transition-colors">
+                          {service.name}
+                        </h3>
+                        <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                          {service.description ?? "Comprehensive optometrist consultation and ocular health assessment."}
+                        </p>
                       </div>
                     </div>
-                    <div className="p-4 space-y-1.5">
-                      <span className="block font-semibold text-foreground tracking-tight">{service.name}</span>
-                      <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                        {service.description ?? "Clinic service."}
-                      </p>
-                      <p className="inline-flex items-center gap-1.5 text-xs text-primary font-medium pt-1">
+
+                    <div className="px-5 pb-5 pt-1 border-t border-border/40 flex items-center justify-between text-xs text-muted-foreground">
+                      <span className="inline-flex items-center gap-1.5 font-medium text-emerald-600 dark:text-emerald-400">
                         <Clock className="size-3.5" aria-hidden="true" />
-                        {service.durationMinutes ? `${service.durationMinutes} min session` : "Clinic duration"}
-                      </p>
+                        {service.durationMinutes ? `${service.durationMinutes} min consultation` : "Standard duration"}
+                      </span>
+                      <span className="font-medium text-primary group-hover:translate-x-0.5 transition-transform">
+                        Select →
+                      </span>
                     </div>
                   </button>
                 );
@@ -458,430 +387,316 @@ export function BookingFlow({ initialServiceId }: { initialServiceId?: string })
         </section>
       ) : null}
 
+      {/* STEP 2: UNIFIED DATE & TIME SELECTOR */}
       {step === 2 ? (
-        <section className="space-y-4" aria-labelledby="choose-date">
-          <div>
-            <h2 id="choose-date" className="text-lg font-semibold">
-              Choose a preferred date
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Dates are Manila clinic dates. Weekends and closures may have no
-              available times.
-            </p>
-          </div>
-
-          <Card>
-            <CardContent className="space-y-4 px-5 py-5">
-              <div className="flex flex-wrap items-center gap-2 text-sm">
-                <Badge variant="secondary">{selectedService?.name}</Badge>
-                <span className="text-muted-foreground">
-                  {selectedService?.durationMinutes} min ·{" "}
-                  {formatCurrency(selectedService?.fee)}
-                </span>
+        <section className="space-y-6" aria-labelledby="choose-datetime">
+          {/* Active Service Banner */}
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/80 bg-secondary/30 p-4 sm:p-5">
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <Sparkles className="size-5" />
               </div>
-
-              <Field>
-                <FieldLabel htmlFor="booking-date">Preferred date</FieldLabel>
-                <Input
-                  id="booking-date"
-                  type="date"
-                  min={minDate}
-                  max={maxDate}
-                  value={date}
-                  onChange={(event) => {
-                    setDate(event.target.value);
-                    setSelectedSlot(null);
-                  }}
-                  className="max-w-xs"
-                />
-                <FieldDescription>
-                  Available times are a point-in-time estimate, not a
-                  reservation.
-                </FieldDescription>
-              </Field>
-
-              <div className="flex flex-wrap gap-2">
-                <Button type="button" variant="outline" onClick={goBack}>
-                  <ArrowLeft className="size-4" /> Back
-                </Button>
-                <Button
-                  type="button"
-                  disabled={!date}
-                  onClick={() => setStep(3)}
-                >
-                  See times <ArrowRight className="size-4" />
-                </Button>
+              <div>
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Selected Service</span>
+                <p className="text-base font-bold text-foreground">{selectedService?.name}</p>
               </div>
-            </CardContent>
-          </Card>
-        </section>
-      ) : null}
-
-      {step === 3 ? (
-        <section className="space-y-4" aria-labelledby="choose-time">
-          <div>
-            <h2 id="choose-time" className="text-lg font-semibold">
-              Choose a preferred time
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              {formatDate(date)} · {selectedService?.name}
-            </p>
-          </div>
-
-          {loadingSlots ? (
-            <LoadingState title="Checking available times" />
-          ) : slotsError ? (
-            <div role="alert" className="space-y-3 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm">
-              <p className="flex items-start gap-2 text-destructive">
-                <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-                {slotsError}
-              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-muted-foreground">
+                {selectedService?.durationMinutes} min · {formatCurrency(selectedService?.fee)}
+              </span>
               <Button
                 type="button"
+                variant="ghost"
                 size="sm"
-                variant="outline"
-                onClick={() => {
-                  if (!selectedService) return;
-                  setDate((current) => `${current}`);
-                }}
+                onClick={() => setStep(1)}
+                className="text-xs font-semibold text-primary hover:bg-primary/10 cursor-pointer"
               >
-                <RefreshCw className="size-4" /> Retry
+                Change
               </Button>
             </div>
-          ) : slots.length === 0 ? (
-            <EmptyState
-              title="No times available"
-              description="This date has no open times for the selected service. Try another date."
-              icon={CalendarCheck}
-              action={
-                <Button type="button" variant="outline" onClick={() => setStep(2)}>
-                  Choose another date
-                </Button>
-              }
-            />
-          ) : (
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {slots.map((slot) => {
-                const selected = selectedSlot?.startAt === slot.startAt;
-                return (
-                  <button
-                    key={slot.startAt}
-                    type="button"
-                    onClick={() => setSelectedSlot(slot)}
-                    aria-pressed={selected}
-                    className={cn(
-                      "rounded-lg border bg-card px-3 py-3 text-sm transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                      selected && "border-primary bg-primary text-primary-foreground",
-                    )}
-                  >
-                    {slot.label || formatTime(slot.startAt)}
-                  </button>
-                );
-              })}
-            </div>
-          )}
+          </div>
 
-          <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="outline" onClick={goBack}>
-              <ArrowLeft className="size-4" /> Back
+          <div className="grid gap-8 lg:grid-cols-12">
+            {/* Left Column: Date Selector */}
+            <div className="lg:col-span-5 space-y-4">
+              <div>
+                <h2 id="choose-datetime" className="text-xl font-bold tracking-tight text-foreground">
+                  Select Consultation Date
+                </h2>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  Clinic hours are set according to our optometrist schedule.
+                </p>
+              </div>
+
+              <Card className="rounded-2xl border-border/80 shadow-xs">
+                <CardContent className="p-5 space-y-4">
+                  <Field>
+                    <FieldLabel htmlFor="booking-date" className="text-sm font-medium">Preferred Date</FieldLabel>
+                    <Input
+                      id="booking-date"
+                      type="date"
+                      min={minDate}
+                      max={maxDate}
+                      value={date}
+                      onChange={(event) => {
+                        setDate(event.target.value);
+                        setSelectedSlot(null);
+                      }}
+                      className="h-11 text-base font-medium"
+                    />
+                    <FieldDescription className="text-xs">
+                      {formatDate(date)}
+                    </FieldDescription>
+                  </Field>
+
+                  <div className="flex items-center gap-2 pt-2 border-t border-border/60 text-xs text-muted-foreground">
+                    <MapPin className="size-3.5 text-primary shrink-0" />
+                    <span>OptiCo Clinic · Level 2 Medical Arts, Makati City</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Right Column: Time Slots */}
+            <div className="lg:col-span-7 space-y-4">
+              <div>
+                <h3 className="text-xl font-bold tracking-tight text-foreground">
+                  Available Consultation Times
+                </h3>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  Select a slot for {formatDate(date)}.
+                </p>
+              </div>
+
+              {loadingSlots ? (
+                <div className="rounded-2xl border border-border/80 bg-card p-12 text-center">
+                  <LoadingState title="Checking real-time optometrist availability…" />
+                </div>
+              ) : slotsError ? (
+                <div role="alert" className="space-y-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-5 text-sm">
+                  <p className="flex items-start gap-2 text-destructive">
+                    <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+                    {slotsError}
+                  </p>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setDate((curr) => `${curr}`)}
+                    className="cursor-pointer"
+                  >
+                    <RefreshCw className="size-4 mr-1.5" /> Retry
+                  </Button>
+                </div>
+              ) : slots.length === 0 ? (
+                <Card className="rounded-2xl border-border/80 p-8 text-center">
+                  <EmptyState
+                    title="No open slots for this date"
+                    description="All slots are fully booked or the clinic is closed on this day. Please choose another date."
+                    icon={CalendarCheck}
+                  />
+                </Card>
+              ) : (
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {slots.map((slot) => {
+                    const selected = selectedSlot?.startAt === slot.startAt;
+                    return (
+                      <button
+                        key={slot.startAt}
+                        type="button"
+                        onClick={() => setSelectedSlot(slot)}
+                        aria-pressed={selected}
+                        className={cn(
+                          "flex flex-col items-center justify-center rounded-xl border p-3.5 text-center transition-all cursor-pointer select-none",
+                          selected
+                            ? "border-primary bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30 font-bold"
+                            : "border-border/80 bg-card hover:border-primary/40 hover:bg-secondary/40 text-foreground font-medium",
+                        )}
+                      >
+                        <span className="text-sm">
+                          {slot.label || formatTime(slot.startAt)}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Stepper Navigation */}
+          <div className="flex items-center justify-between pt-4 border-t border-border/60">
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              onClick={() => setStep(1)}
+              className="rounded-xl cursor-pointer"
+            >
+              <ArrowLeft className="size-4 mr-2" /> Back
             </Button>
             <Button
               type="button"
+              size="lg"
               disabled={!selectedSlot}
-              onClick={() => setStep(4)}
+              onClick={() => setStep(3)}
+              className="rounded-xl shadow-xs cursor-pointer"
             >
-              Continue <ArrowRight className="size-4" />
+              Review Request <ArrowRight className="size-4 ml-2" />
             </Button>
           </div>
         </section>
       ) : null}
 
-      {step === 4 ? (
-        <section className="space-y-4" aria-labelledby="booking-details">
+      {/* STEP 3: REVIEW & CONFIRM */}
+      {step === 3 ? (
+        <section className="space-y-6" aria-labelledby="review-request">
           <div>
-            <h2 id="booking-details" className="text-lg font-semibold">
-              Patient details
+            <h2 id="review-request" className="text-2xl font-bold tracking-tight text-foreground">
+              Review & Confirm Consultation
             </h2>
-            <p className="text-sm text-muted-foreground">
-              Only what the clinic needs to manage the appointment.
-            </p>
-          </div>
-
-          <Card>
-            <CardContent className="px-5 py-5">
-              <form
-                id="booking-details-form"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  void continueFromDetails();
-                }}
-                noValidate
-              >
-                <FieldGroup>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <Field data-invalid={Boolean(form.formState.errors.fullName)}>
-                      <FieldLabel htmlFor="fullName">Full name</FieldLabel>
-                      <Input
-                        id="fullName"
-                        autoComplete="name"
-                        aria-invalid={Boolean(form.formState.errors.fullName)}
-                        {...form.register("fullName")}
-                      />
-                      <FieldError errors={[form.formState.errors.fullName]} />
-                    </Field>
-
-                    <Field data-invalid={Boolean(form.formState.errors.email)}>
-                      <FieldLabel htmlFor="email">Email</FieldLabel>
-                      <Input
-                        id="email"
-                        type="email"
-                        autoComplete="email"
-                        aria-invalid={Boolean(form.formState.errors.email)}
-                        {...form.register("email")}
-                      />
-                      <FieldError errors={[form.formState.errors.email]} />
-                    </Field>
-
-                    <Field data-invalid={Boolean(form.formState.errors.mobile)}>
-                      <FieldLabel htmlFor="mobile">Mobile number</FieldLabel>
-                      <Input
-                        id="mobile"
-                        type="tel"
-                        autoComplete="tel"
-                        aria-invalid={Boolean(form.formState.errors.mobile)}
-                        {...form.register("mobile")}
-                      />
-                      <FieldError errors={[form.formState.errors.mobile]} />
-                    </Field>
-
-                    <Field>
-                      <FieldLabel htmlFor="dateOfBirth">
-                        Date of birth{" "}
-                        <span className="font-normal text-muted-foreground">
-                          (optional)
-                        </span>
-                      </FieldLabel>
-                      <Input
-                        id="dateOfBirth"
-                        type="date"
-                        max={minDate}
-                        {...form.register("dateOfBirth")}
-                      />
-                      <FieldDescription>
-                        Used only for age and guardian requirements.
-                      </FieldDescription>
-                    </Field>
-                  </div>
-
-                  {guardianRequired ? (
-                    <div className="space-y-4 rounded-xl border border-amber-200 bg-amber-50/60 p-4 dark:border-amber-900 dark:bg-amber-950/40">
-                      <div>
-                        <p className="text-sm font-medium">Parent or guardian</p>
-                        <p className="text-xs text-muted-foreground">
-                          Required because the patient will be under 18 on the
-                          appointment date.
-                        </p>
-                      </div>
-                      <div className="grid gap-4 sm:grid-cols-3">
-                        <Field data-invalid={Boolean(form.formState.errors.guardianName)}>
-                          <FieldLabel htmlFor="guardianName">Guardian name</FieldLabel>
-                          <Input
-                            id="guardianName"
-                            autoComplete="name"
-                            aria-invalid={Boolean(form.formState.errors.guardianName)}
-                            {...form.register("guardianName")}
-                          />
-                          <FieldError errors={[form.formState.errors.guardianName]} />
-                        </Field>
-                        <Field data-invalid={Boolean(form.formState.errors.guardianRelationship)}>
-                          <FieldLabel htmlFor="guardianRelationship">
-                            Relationship
-                          </FieldLabel>
-                          <Input
-                            id="guardianRelationship"
-                            placeholder="Parent, guardian"
-                            aria-invalid={Boolean(form.formState.errors.guardianRelationship)}
-                            {...form.register("guardianRelationship")}
-                          />
-                          <FieldError errors={[form.formState.errors.guardianRelationship]} />
-                        </Field>
-                        <Field data-invalid={Boolean(form.formState.errors.guardianContact)}>
-                          <FieldLabel htmlFor="guardianContact">
-                            Guardian contact
-                          </FieldLabel>
-                          <Input
-                            id="guardianContact"
-                            type="tel"
-                            aria-invalid={Boolean(form.formState.errors.guardianContact)}
-                            {...form.register("guardianContact")}
-                          />
-                          <FieldError errors={[form.formState.errors.guardianContact]} />
-                        </Field>
-                      </div>
-                    </div>
-                  ) : null}
-
-                  <Field data-invalid={Boolean(form.formState.errors.note)}>
-                    <FieldLabel htmlFor="note">
-                      Booking note{" "}
-                      <span className="font-normal text-muted-foreground">
-                        (optional)
-                      </span>
-                    </FieldLabel>
-                    <Textarea
-                      id="note"
-                      rows={3}
-                      placeholder="Operational context only, such as a preferred language."
-                      aria-invalid={Boolean(form.formState.errors.note)}
-                      {...form.register("note")}
-                    />
-                    <FieldDescription>
-                      Do not enter diagnoses, prescriptions, or sensitive
-                      clinical details in this field.
-                    </FieldDescription>
-                    <FieldError errors={[form.formState.errors.note]} />
-                  </Field>
-                </FieldGroup>
-              </form>
-            </CardContent>
-          </Card>
-
-          <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="outline" onClick={goBack}>
-              <ArrowLeft className="size-4" /> Back
-            </Button>
-            <Button type="submit" form="booking-details-form">
-              Review request <ArrowRight className="size-4" />
-            </Button>
-          </div>
-        </section>
-      ) : null}
-
-      {step === 5 ? (
-        <section className="space-y-4" aria-labelledby="review-request">
-          <div>
-            <h2 id="review-request" className="text-lg font-semibold">
-              Review your request
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Check the details before sending. Nothing is booked until the
-              clinic approves it.
-            </p>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Appointment request</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Detail label="Service" value={selectedService?.name} />
-                <Detail
-                  label="Fee"
-                  value={formatCurrency(selectedService?.fee)}
-                />
-                <Detail label="Date" value={formatDate(date)} />
-                <Detail
-                  label="Preferred time"
-                  value={selectedSlot?.label ?? formatTime(selectedSlot?.startAt)}
-                />
-                <Detail
-                  label="Duration"
-                  value={`${selectedService?.durationMinutes ?? "—"} minutes`}
-                />
-                <Detail
-                  label="Booking as"
-                  value={user?.role.toUpperCase() === "PATIENT" ? "Registered patient" : "Walk-in"}
-                />
-              </div>
-
-              <div className="border-t pt-3">
-                <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
-                  Patient
-                </p>
-                <p className="mt-1 font-medium">{form.getValues("fullName")}</p>
-                <p className="text-muted-foreground">
-                  {form.getValues("email")} · {form.getValues("mobile")}
-                </p>
-                {guardianRequired ? (
-                  <p className="mt-2 text-muted-foreground">
-                    Guardian: {form.getValues("guardianName")} (
-                    {form.getValues("guardianRelationship")}) ·{" "}
-                    {form.getValues("guardianContact")}
-                  </p>
-                ) : null}
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
-            <p className="flex items-start gap-2">
-              <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-              Appointment request only — your schedule is confirmed after clinic
-              approval. The clinic may offer a different time if the requested
-              slot cannot be staffed.
+            <p className="text-sm text-muted-foreground mt-1">
+              Verify your appointment details before submitting your request.
             </p>
           </div>
 
           {submitError ? (
             <div
               role="alert"
-              className={cn(
-                "rounded-lg border px-4 py-3 text-sm",
-                conflict
-                  ? "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100"
-                  : "border-destructive/30 bg-destructive/5 text-destructive",
-              )}
+              className="flex items-start gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive"
             >
-              <p className="flex items-start gap-2">
-                <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-                <span>
-                  {submitError}
-                  {conflict
-                    ? " Your request was not submitted. Please choose another time."
-                    : ""}
-                </span>
-              </p>
-              {conflict ? (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  className="mt-3"
-                  onClick={() => setStep(3)}
-                >
-                  Choose another time
-                </Button>
-              ) : null}
+              <AlertCircle className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+              <div>
+                <p className="font-semibold">{submitError}</p>
+                {conflict ? (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Another patient just reserved this slot. Please choose another available time.
+                  </p>
+                ) : null}
+              </div>
             </div>
           ) : null}
 
-          <div className="flex flex-wrap gap-2">
+          <div className="grid gap-6 lg:grid-cols-12">
+            {/* Left: Patient Verification Card */}
+            <div className="lg:col-span-5 space-y-4">
+              <Card className="rounded-2xl border-border/80 shadow-xs">
+                <CardContent className="p-6 space-y-4">
+                  <div className="flex items-center justify-between border-b border-border/60 pb-3">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Patient Account
+                    </span>
+                    <Badge variant="secondary" className="gap-1 text-xs font-medium">
+                      <ShieldCheck className="size-3.5 text-emerald-600" />
+                      Verified Patient
+                    </Badge>
+                  </div>
+
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <span className="text-xs text-muted-foreground block">Full Name</span>
+                      <span className="font-semibold text-base text-foreground block">
+                        {user?.name ?? "Verified Patient"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-xs text-muted-foreground block">Email Address</span>
+                      <span className="font-medium text-foreground block">{user?.email}</span>
+                    </div>
+                    {patientMobile ? (
+                      <div>
+                        <span className="text-xs text-muted-foreground block">Contact Mobile</span>
+                        <span className="font-medium text-foreground block">{patientMobile}</span>
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <p className="text-xs text-muted-foreground pt-2 border-t border-border/60">
+                    Appointments are permanently saved to your patient portal history.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Right: Appointment Summary & Note */}
+            <div className="lg:col-span-7 space-y-4">
+              <Card className="rounded-2xl border-border/80 shadow-xs">
+                <CardContent className="p-6 space-y-5">
+                  <div className="space-y-3">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block">
+                      Consultation Details
+                    </span>
+
+                    <div className="grid gap-3 sm:grid-cols-2 text-sm bg-secondary/30 p-4 rounded-xl border border-border/60">
+                      <div>
+                        <span className="text-xs text-muted-foreground block">Service</span>
+                        <span className="font-bold text-foreground block">{selectedService?.name}</span>
+                      </div>
+                      <div>
+                        <span className="text-xs text-muted-foreground block">Consultation Fee</span>
+                        <span className="font-bold text-emerald-600 dark:text-emerald-400 block">
+                          {formatCurrency(selectedService?.fee)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-xs text-muted-foreground block">Date</span>
+                        <span className="font-medium text-foreground block">{formatDate(date)}</span>
+                      </div>
+                      <div>
+                        <span className="text-xs text-muted-foreground block">Time Slot</span>
+                        <span className="font-medium text-foreground block">
+                          {selectedSlot?.label ?? formatTime(selectedSlot?.startAt)} ({selectedService?.durationMinutes} min)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Optional Note */}
+                  <Field>
+                    <FieldLabel htmlFor="booking-note" className="text-sm font-medium">
+                      Consultation Notes <span className="font-normal text-muted-foreground">(Optional)</span>
+                    </FieldLabel>
+                    <Textarea
+                      id="booking-note"
+                      rows={3}
+                      value={note}
+                      onChange={(e) => setNote(e.target.value)}
+                      placeholder="e.g. Existing contact lens wearer, dry eye symptoms, or specific vision concerns…"
+                      className="text-sm"
+                    />
+                    <FieldDescription className="text-xs">
+                      Provide any non-emergency context to prepare our optometrist before arrival.
+                    </FieldDescription>
+                  </Field>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Stepper Navigation */}
+          <div className="flex items-center justify-between pt-4 border-t border-border/60">
             <Button
               type="button"
               variant="outline"
-              onClick={goBack}
-              disabled={submitting}
+              size="lg"
+              onClick={() => setStep(2)}
+              className="rounded-xl cursor-pointer"
             >
-              <ArrowLeft className="size-4" /> Back
+              <ArrowLeft className="size-4 mr-2" /> Back
             </Button>
-            <Button type="button" onClick={submit} disabled={submitting}>
-              {submitting ? "Sending request…" : "Send appointment request"}
+            <Button
+              type="button"
+              size="lg"
+              disabled={submitting}
+              onClick={submit}
+              className="rounded-xl shadow-xs cursor-pointer min-w-44"
+            >
+              {submitting ? "Submitting Request…" : "Confirm Appointment Request"}
             </Button>
           </div>
         </section>
       ) : null}
-    </div>
-  );
-}
-
-function Detail({ label, value }: { label: string; value?: React.ReactNode }) {
-  return (
-    <div>
-      <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
-        {label}
-      </p>
-      <p className="mt-1 font-medium">{value ?? "—"}</p>
     </div>
   );
 }

@@ -8,11 +8,12 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const registered = searchParams.get("registered") === "1";
   const invited = searchParams.get("invited") === "1";
+  const next = searchParams.get("next") || undefined;
 
   usePageMeta({
     title: "Sign In",
     description: "Sign in to access your OptiCo patient appointments and clinic portal.",
   });
 
-  return <LoginForm registered={registered} invited={invited} />;
+  return <LoginForm registered={registered} invited={invited} next={next} />;
 }

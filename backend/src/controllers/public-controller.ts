@@ -1,7 +1,6 @@
 import type { Request, Response } from "express";
-import { routeParam, success } from "@/lib/http";
+import { AppError, routeParam, success } from "@/lib/http";
 import type { AuthenticatedRequest } from "@/middlewares/auth-middleware";
-import { createGuestBookingService } from "@/services/booking-service";
 import {
   getPublicClinicService,
   getPublicDoctorService,
@@ -32,9 +31,8 @@ export class PublicController {
     return success(res, await getAvailability(serviceId, date));
   };
 
-  public createBooking = async (req: Request, res: Response) => {
-    const result = await createGuestBookingService(req.body);
-    return success(res, result, "Appointment request received. The clinic will review it.", 201);
+  public createBooking = async (_req: Request, _res: Response) => {
+    throw new AppError(401, "Guest booking is disabled. Please create an account or sign in to book an appointment.");
   };
 
 }

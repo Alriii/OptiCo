@@ -76,7 +76,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       setUser(nextUser);
-      router.replace(portalPathForRole(nextUser.role));
+      const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+      const nextParam = searchParams?.get("next") || searchParams?.get("redirect");
+      const destination = nextParam && nextParam.startsWith("/") ? nextParam : portalPathForRole(nextUser.role);
+      router.replace(destination);
       return nextUser;
     },
     [router],
@@ -100,7 +103,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (nextUser) {
           setUser(nextUser);
-          router.replace(portalPathForRole(nextUser.role));
+          const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+          const nextParam = searchParams?.get("next") || searchParams?.get("redirect");
+          const destination = nextParam && nextParam.startsWith("/") ? nextParam : portalPathForRole(nextUser.role);
+          router.replace(destination);
           return nextUser;
         }
       } catch {
@@ -108,7 +114,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         toast.info("Account created. Please sign in to continue.");
       }
 
-      router.replace("/login?registered=1");
+      const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+      const nextParam = searchParams?.get("next") || searchParams?.get("redirect");
+      const loginUrl = nextParam ? `/login?registered=1&next=${encodeURIComponent(nextParam)}` : "/login?registered=1";
+      router.replace(loginUrl);
       return null;
     },
     [router],

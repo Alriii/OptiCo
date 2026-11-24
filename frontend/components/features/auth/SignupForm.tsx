@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 
-export function SignupForm() {
+export function SignupForm({ next }: { next?: string } = {}) {
   const { signup } = useAuth();
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -126,7 +126,10 @@ export function SignupForm() {
       <div className="space-y-2 pt-2 text-center text-xs text-muted-foreground">
         <p>
           Already have an account?{" "}
-          <Link href="/login" className="font-medium text-foreground underline underline-offset-4 hover:text-primary transition-colors">
+          <Link
+            href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"}
+            className="font-medium text-foreground underline underline-offset-4 hover:text-primary transition-colors"
+          >
             Sign in
           </Link>
         </p>

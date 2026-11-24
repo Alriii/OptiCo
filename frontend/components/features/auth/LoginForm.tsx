@@ -14,9 +14,11 @@ import { Button } from "@/components/ui/button";
 export function LoginForm({
   registered,
   invited,
+  next,
 }: {
   registered?: boolean;
   invited?: boolean;
+  next?: string;
 }) {
   const { login } = useAuth();
   const [formError, setFormError] = useState<string | null>(null);
@@ -53,6 +55,13 @@ export function LoginForm({
       </div>
 
       {/* Notifications / Alerts */}
+      {next?.includes("booking") ? (
+        <div className="flex items-center gap-2.5 rounded-lg border border-primary/20 bg-primary/10 px-3.5 py-2.5 text-xs text-foreground">
+          <CheckCircle2 className="size-4 shrink-0 text-primary" />
+          <span>Please sign in with your patient account to book an appointment.</span>
+        </div>
+      ) : null}
+
       {registered ? (
         <div className="flex items-center gap-2.5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3.5 py-2.5 text-xs text-emerald-800 dark:text-emerald-300">
           <CheckCircle2 className="size-4 shrink-0" />
@@ -197,7 +206,7 @@ export function LoginForm({
       <p className="text-center text-xs text-muted-foreground pt-2">
         Don&apos;t have an account?{" "}
         <Link
-          href="/signup"
+          href={next ? `/signup?next=${encodeURIComponent(next)}` : "/signup"}
           className="font-medium text-foreground underline underline-offset-4 hover:text-primary transition-colors"
         >
           Create an account
