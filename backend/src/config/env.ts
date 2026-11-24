@@ -26,7 +26,6 @@ const envSchema = z.object({
   SMTP_FROM_NAME: z.string().default("OptiCo"),
   SMTP_FROM_EMAIL: z.email().optional(),
   APP_PUBLIC_URL: z.url().default("http://localhost:3000"),
-  GUEST_LINK_TTL_HOURS: z.coerce.number().int().positive().default(168),
   ACCESS_TOKEN_TTL_MINUTES: z.coerce.number().int().positive().default(15),
   REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().positive().default(7),
 });

@@ -1,10 +1,7 @@
-import { ENV } from "@/config/env";
 import type { Patient, Service } from "@/db/schema";
 import { AppError } from "@/lib/http";
 import { ageInYears, formatManilaDateTime, isValidManilaDate, manilaDateString } from "@/lib/time";
-import { generateOpaqueToken, hashToken } from "@/lib/tokens";
 import { AppointmentRepository } from "@/repositories/appointment-repository";
-import { GuestTokenRepository } from "@/repositories/guest-token-repository";
 import { PatientRepository } from "@/repositories/patient-repository";
 import { ServiceRepository } from "@/repositories/service-repository";
 import { SettingsRepository } from "@/repositories/settings-repository";
@@ -15,7 +12,6 @@ import { assertAlignedSlot, hasScheduleCoverage } from "@/services/scheduling-se
 const appointmentRepository = new AppointmentRepository();
 const patientRepository = new PatientRepository();
 const serviceRepository = new ServiceRepository();
-const guestTokenRepository = new GuestTokenRepository();
 const settingsRepository = new SettingsRepository();
 
 export type GuestPatientInput = {
@@ -104,26 +100,6 @@ export async function createGuestBookingService(input: BookingInput) {
     note: input.note ?? null,
   });
 
-  const settings = await settingsRepository.get();
-  const ttlHours = settings?.guestLinkTtlHours ?? ENV.GUEST_LINK_TTL_HOURS;
-  const rawToken = generateOpaqueToken(32);
-  await guestTokenRepository.create({
-    appointmentId: appointment.id,
-    tokenHash: hashToken(rawToken),
-    expiresAt: new Date(Date.now() + ttlHours * 60 * 60 * 1000),
-  });
-
-  await enqueueEmail({
-    dedupeKey: `guest_link:${appointment.id}`,
-    recipient: patient.email,
-    templateKey: "guest_link",
-    payload: {
-      reference: appointment.reference,
-      link: `${ENV.APP_PUBLIC_URL}/guest/manage#token=${rawToken}`,
-      ttlHours,
-    },
-  });
-
   await notifyRequestReceived(appointment.id, appointment.reference, service.name, patient, startAt);
   await recordAudit({
     actorType: "GUEST",
@@ -188,28 +164,3 @@ export async function createPatientBookingService(userId: string, input: Booking
   };
 }
 
-export function toGuestAppointmentView(appointment: {
-  id: string;
-  reference: string;
-  status: string;
-  requestedStartAt: Date;
-  startsAt: Date | null;
-  endsAt: Date | null;
-  serviceName: string;
-  doctorName: string | null;
-  fee: string;
-  note: string | null;
-}) {
-  return {
-    id: appointment.id,
-    reference: appointment.reference,
-    status: appointment.status,
-    requestedStartAt: appointment.requestedStartAt.toISOString(),
-    startsAt: appointment.startsAt?.toISOString() ?? null,
-    endsAt: appointment.endsAt?.toISOString() ?? null,
-    serviceName: appointment.serviceName,
-    doctorName: appointment.doctorName,
-    fee: appointment.fee,
-    note: appointment.note,
-  };
-}

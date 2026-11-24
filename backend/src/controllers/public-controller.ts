@@ -1,13 +1,7 @@
-﻿import type { Request, Response } from "express";
+import type { Request, Response } from "express";
 import { routeParam, success } from "@/lib/http";
-import { clearGuestCookie, setGuestCookie } from "@/lib/auth-cookies";
 import type { AuthenticatedRequest } from "@/middlewares/auth-middleware";
-import {
-  createGuestBookingService,
-  toGuestAppointmentView,
-} from "@/services/booking-service";
-import { exchangeGuestTokenService } from "@/services/guest-service";
-import { guestCancelRequestService, getGuestAppointmentService } from "@/services/appointment-service";
+import { createGuestBookingService } from "@/services/booking-service";
 import {
   getPublicClinicService,
   getPublicDoctorService,
@@ -43,22 +37,4 @@ export class PublicController {
     return success(res, result, "Appointment request received. The clinic will review it.", 201);
   };
 
-  public exchangeGuestToken = async (req: Request, res: Response) => {
-    const result = await exchangeGuestTokenService(req.body.token);
-    setGuestCookie(res, result.appointmentId);
-    return success(res, { appointment: result.appointment }, "Guest session started");
-  };
-
-  public guestAppointment = async (req: Request, res: Response) => {
-    const appointmentId = (req as AuthenticatedRequest).guestAppointmentId!;
-    const detail = await getGuestAppointmentService(appointmentId);
-    return success(res, { appointment: toGuestAppointmentView(detail) });
-  };
-
-  public guestCancelRequest = async (req: Request, res: Response) => {
-    const appointmentId = (req as AuthenticatedRequest).guestAppointmentId!;
-    const detail = await guestCancelRequestService(appointmentId, req.body.reason ?? "");
-    clearGuestCookie(res);
-    return success(res, { appointment: toGuestAppointmentView(detail) }, "Cancellation recorded");
-  };
 }

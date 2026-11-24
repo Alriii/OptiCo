@@ -93,13 +93,6 @@ export function renderEmail(templateKey: string, payload: TemplatePayload): Rend
         doctorName ? `Doctor: ${doctorName}` : "",
       ].filter(Boolean));
 
-    case "guest_link":
-      return render("Manage your appointment request", [
-        `Reference ${reference}.`,
-        `Use this private link within ${value(payload, "ttlHours", "168")} hours: ${value(payload, "link")}`,
-        "The link can be exchanged once. Do not forward it.",
-      ]);
-
     case "reschedule_requested":
       return render("Patient requested a new time", [
         `Reference ${reference} is pending a reschedule request.`,

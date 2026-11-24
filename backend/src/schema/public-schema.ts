@@ -31,16 +31,4 @@ export const guestBookingSchema = z.object({
   }),
 });
 
-export const guestExchangeSchema = z.object({
-  body: z.object({
-    token: z.string().min(20, "Token is required").max(200),
-  }),
-});
-
-export const guestCancelSchema = z.object({
-  body: z.object({
-    reason: z.string().trim().max(300).optional(),
-  }),
-});
-
 export { patientDetails };

@@ -10,7 +10,6 @@ import ServicesPage from "@/app/(public)/services/page";
 import DoctorsPage from "@/app/(public)/doctors/page";
 import DoctorProfilePage from "@/app/(public)/doctors/[slug]/page";
 import BookingPage from "@/app/(public)/booking/page";
-import GuestManagePage from "@/app/(public)/guest/manage/page";
 import ContactPage from "@/app/(public)/contact/page";
 import CancellationPage from "@/app/(public)/policies/cancellation/page";
 import PrivacyPage from "@/app/(public)/policies/privacy/page";
@@ -220,7 +219,6 @@ export default function App() {
         <Route path="/doctors" element={<DoctorsPage />} />
         <Route path="/doctors/:slug" element={<DoctorProfilePage />} />
         <Route path="/booking" element={<BookingPage />} />
-        <Route path="/guest/manage" element={<GuestManagePage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/policies/cancellation" element={<CancellationPage />} />
         <Route path="/policies/privacy" element={<PrivacyPage />} />

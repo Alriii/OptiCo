@@ -336,8 +336,7 @@ export function BookingFlow({ initialServiceId }: { initialServiceId?: string })
               <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
               <span>
                 The clinic will email you when the request is approved or
-                rejected. If you booked as a guest, that email includes a
-                private link to manage this booking.
+                rejected.
               </span>
             </p>
           </div>
@@ -792,7 +791,7 @@ export function BookingFlow({ initialServiceId }: { initialServiceId?: string })
                 />
                 <Detail
                   label="Booking as"
-                  value={user?.role.toUpperCase() === "PATIENT" ? "Registered patient" : "Guest"}
+                  value={user?.role.toUpperCase() === "PATIENT" ? "Registered patient" : "Walk-in"}
                 />
               </div>
 

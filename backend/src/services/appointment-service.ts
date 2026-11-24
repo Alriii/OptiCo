@@ -6,7 +6,6 @@ import { formatManilaDateTime, manilaDateString } from "@/lib/time";
 import { AppointmentRepository, type AppointmentFilters } from "@/repositories/appointment-repository";
 import { DoctorRepository } from "@/repositories/doctor-repository";
 import { EmailOutboxRepository } from "@/repositories/email-outbox-repository";
-import { GuestTokenRepository } from "@/repositories/guest-token-repository";
 import { PatientRepository } from "@/repositories/patient-repository";
 import { ServiceRepository } from "@/repositories/service-repository";
 import { SettingsRepository } from "@/repositories/settings-repository";
@@ -20,7 +19,6 @@ const doctorRepository = new DoctorRepository();
 const patientRepository = new PatientRepository();
 const outboxRepository = new EmailOutboxRepository();
 const settingsRepository = new SettingsRepository();
-const guestTokenRepository = new GuestTokenRepository();
 
 function isExclusionViolation(error: unknown): boolean {
   return (error as { code?: string })?.code === "23P01";
@@ -251,7 +249,6 @@ export async function cancelAppointmentService(id: string, actorUserId: string, 
     await outboxRepository.cancelUnsentReminders(id, tx);
   });
 
-  await guestTokenRepository.revokeForAppointment(id);
   const detail = await patientEmailContext(id);
   await notifyPatient(detail, "cancelled", { reason });
   await recordAudit({
@@ -401,13 +398,6 @@ export async function patientCancelRequestService(userId: string, id: string, re
   return cancelAppointmentService(id, userId, reason);
 }
 
-export async function guestCancelRequestService(appointmentId: string, reason: string) {
-  const appointment = await appointmentRepository.findById(appointmentId);
-  if (!appointment) throw new AppError(404, "Appointment not found");
-  await assertCancellationPolicy(appointment);
-  return cancelAppointmentService(appointmentId, "", reason || "Guest requested cancellation");
-}
-
 export async function patientRescheduleRequestService(userId: string, id: string, startAt: Date) {
   const patient = await patientRepository.findByUserId(userId);
   if (!patient) throw new AppError(404, "Patient profile not found");
@@ -450,13 +440,6 @@ export async function patientRescheduleRequestService(userId: string, id: string
   }
 
   return appointmentRepository.findDetailById(id);
-}
-
-/** Used by the guest controller after the cookie has been verified. */
-export async function getGuestAppointmentService(appointmentId: string) {
-  const detail = await appointmentRepository.findDetailById(appointmentId);
-  if (!detail) throw new AppError(404, "Appointment not found");
-  return detail;
 }
 
 export function manilaDateOf(date: Date) {
