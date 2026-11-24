@@ -36,14 +36,18 @@ export function SignupForm() {
   };
 
   return (
-    <div className="w-full rounded-3xl border border-border/80 bg-card/95 p-8 sm:p-10 shadow-sm sm:shadow-xl sm:shadow-primary/[0.04] backdrop-blur-xs transition-all">
+    <div className="w-full rounded-2xl border border-border/70 bg-card/95 p-7 sm:p-9 shadow-md shadow-primary/[0.03] backdrop-blur-sm transition-all">
       {/* Clean Minimalist Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+      <div className="mb-6 space-y-1.5">
+        <div className="inline-flex items-center gap-1.5 rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-medium tracking-wide text-primary">
+          <span className="size-1.5 rounded-full bg-primary" />
+          Patient Registration
+        </div>
+        <h1 className="text-2xl sm:text-[26px] font-semibold tracking-tight text-foreground">
           Create an account
         </h1>
-        <p className="mt-1.5 text-xs sm:text-sm text-muted-foreground">
-          Register for convenient patient appointments and visit history
+        <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+          Register for convenient patient appointments and visit history.
         </p>
       </div>
 
