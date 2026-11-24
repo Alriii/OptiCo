@@ -280,7 +280,6 @@ async function seed() {
   }
 
   console.log("\n=======================================================");
-  console.log("🎉 Seed complete! Demo credentials (password: Password123!):");
   console.log("   Admin:        admin@optico.local");
   console.log("   Receptionist: receptionist@optico.local");
   console.log("   Doctor 1:     doctor.reyes@optico.local");

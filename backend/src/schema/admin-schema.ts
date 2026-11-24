@@ -1,9 +1,13 @@
 import { z } from "zod";
+import { normalizeTime, TIME_PATTERN } from "@/lib/time";
 import { paginationQuery } from "@/schema/common-schema";
 
 const fee = z.union([z.string().regex(/^\d+(\.\d{1,2})?$/, "Fee must be a decimal amount"), z.coerce.number().min(0)]);
 
-const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Time must be HH:MM");
+const time = z
+  .string()
+  .regex(TIME_PATTERN, "Time must be HH:MM or HH:MM:SS")
+  .transform(normalizeTime);
 
 export const createServiceSchema = z.object({
   body: z.object({

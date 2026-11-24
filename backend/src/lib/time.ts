@@ -3,7 +3,14 @@
 const MANILA_OFFSET_MINUTES = 8 * 60;
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?$/;
+export const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?$/;
+
+/** Normalize a validated HH:MM or HH:MM:SS value to the storage format. */
+export function normalizeTime(value: string): string {
+  const match = TIME_PATTERN.exec(value);
+  if (!match) throw new Error(`Invalid Manila time: ${value}`);
+  return `${match[1]}:${match[2]}:${match[3] ?? "00"}`;
+}
 
 export function isValidManilaDate(value: string): boolean {
   if (!DATE_PATTERN.test(value)) return false;

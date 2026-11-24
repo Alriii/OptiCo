@@ -4,6 +4,7 @@ import {
   availabilitySchema,
   clinicHoursSchema,
   closureSchema,
+  exceptionSchema,
   settingsSchema,
 } from "@/schema/admin-schema";
 import { rescheduleSchema } from "@/schema/appointment-schema";
@@ -79,5 +80,70 @@ describe("backend request contracts", () => {
     });
 
     expect(parsed.body).toEqual({ startAt: "2026-11-25T01:00:00.000Z" });
+  });
+
+  it("accepts API time strings and normalizes them for schedule comparisons", () => {
+    const hours = clinicHoursSchema.parse({
+      body: {
+        hours: [
+          {
+            weekday: 1,
+            isOpen: true,
+            openTime: "09:00:00",
+            closeTime: "17:00:00",
+          },
+        ],
+      },
+    });
+    const availability = availabilitySchema.parse({
+      params: { id: UUID },
+      body: {
+        windows: [
+          {
+            weekday: 1,
+            startTime: "09:00",
+            endTime: "17:00:00",
+            breakStart: "12:00",
+            breakEnd: "13:00:00",
+          },
+        ],
+      },
+    });
+    const exception = exceptionSchema.parse({
+      params: { id: UUID },
+      body: {
+        date: "2026-11-25",
+        startTime: "09:00:00",
+        endTime: "17:00",
+        type: "UNAVAILABLE",
+      },
+    });
+
+    expect(hours.body.hours[0]).toMatchObject({
+      openTime: "09:00:00",
+      closeTime: "17:00:00",
+    });
+    expect(availability.body.windows[0]).toMatchObject({
+      startTime: "09:00:00",
+      endTime: "17:00:00",
+      breakStart: "12:00:00",
+      breakEnd: "13:00:00",
+    });
+    expect(exception.body).toMatchObject({
+      startTime: "09:00:00",
+      endTime: "17:00:00",
+    });
+  });
+
+  it("still rejects malformed schedule times", () => {
+    expect(() =>
+      clinicHoursSchema.parse({
+        body: {
+          hours: [
+            { weekday: 1, isOpen: true, openTime: "9:00", closeTime: "17:00" },
+          ],
+        },
+      }),
+    ).toThrow("Time must be HH:MM or HH:MM:SS");
   });
 });
