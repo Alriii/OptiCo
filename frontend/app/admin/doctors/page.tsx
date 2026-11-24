@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { AlertCircle, Pencil, Plus, RefreshCw, Stethoscope } from "lucide-react";
+import { AlertCircle, Pencil, Plus, RefreshCw, Stethoscope, UserCheck } from "lucide-react";
 import { toast } from "sonner";
 import {
   adminService,
@@ -31,6 +31,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { usePageMeta } from "@/lib/use-page-meta";
 
 const EMPTY: DoctorFormInput = {
@@ -54,6 +62,7 @@ export default function AdminDoctorsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedDoctorId, setSelectedDoctorId] = useState("");
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
   const [savingServices, setSavingServices] = useState(false);
@@ -88,6 +97,7 @@ export default function AdminDoctorsPage() {
   const startCreate = () => {
     setEditingId(null);
     form.reset(EMPTY);
+    setIsDialogOpen(true);
   };
 
   const startEdit = (doctor: Doctor) => {
@@ -101,12 +111,13 @@ export default function AdminDoctorsPage() {
       isActive: doctor.isActive ?? true,
       email: "",
     });
+    setIsDialogOpen(true);
   };
 
   const onSubmit = async (values: DoctorFormInput) => {
     if (!editingId && !values.email?.trim()) {
       form.setError("email", {
-        message: "An invitation email is required for a new doctor.",
+        message: "An invitation email is required for a new doctor profile.",
       });
       return;
     }
@@ -117,8 +128,9 @@ export default function AdminDoctorsPage() {
         toast.success("Doctor profile updated.");
       } else {
         await adminService.createDoctor(values);
-        toast.success("Doctor created. Set availability before assignments.");
+        toast.success("Doctor created and invitation sent. Set availability in schedules.");
       }
+      setIsDialogOpen(false);
       setEditingId(null);
       form.reset(EMPTY);
       await load();
@@ -171,29 +183,53 @@ export default function AdminDoctorsPage() {
       key: "name",
       header: "Doctor",
       cell: (doctor) => (
-        <div>
-          <p className="font-medium">{doctor.displayName}</p>
-          <p className="text-xs text-muted-foreground">
-            {doctor.credentials || "No credentials"}
-          </p>
+        <div className="flex items-center gap-3">
+          {doctor.photoUrl ? (
+            <img
+              src={doctor.photoUrl}
+              alt={doctor.displayName}
+              className="size-10 rounded-full object-cover ring-1 ring-border/80 shrink-0"
+            />
+          ) : (
+            <div className="flex size-10 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/20 font-semibold text-sm shrink-0">
+              {doctor.displayName.charAt(0)}
+            </div>
+          )}
+          <div className="space-y-0.5">
+            <p className="font-semibold text-base text-foreground">{doctor.displayName}</p>
+            <p className="text-xs text-muted-foreground">
+              {doctor.credentials || "Licensed Optometrist"}
+            </p>
+          </div>
         </div>
       ),
     },
     {
       key: "slug",
-      header: "Public slug",
-      cell: (doctor) => doctor.slug ?? "—",
+      header: "Public Slug",
+      cell: (doctor) => (
+        <span className="font-mono text-xs text-muted-foreground">
+          {doctor.slug ?? "—"}
+        </span>
+      ),
     },
     {
       key: "services",
-      header: "Services",
-      cell: (doctor) => doctor.serviceIds?.length ?? 0,
+      header: "Assigned Services",
+      cell: (doctor) => (
+        <Badge variant="outline" className="text-xs font-normal">
+          {doctor.serviceIds?.length ?? 0} eligible services
+        </Badge>
+      ),
     },
     {
       key: "active",
       header: "Status",
       cell: (doctor) => (
-        <Badge variant={doctor.isActive === false ? "outline" : "secondary"}>
+        <Badge
+          variant={doctor.isActive === false ? "outline" : "secondary"}
+          className="text-xs px-2.5 py-0.5"
+        >
           {doctor.isActive === false ? "Inactive" : "Active"}
         </Badge>
       ),
@@ -202,13 +238,24 @@ export default function AdminDoctorsPage() {
       key: "actions",
       header: "",
       cell: (doctor) => (
-        <div className="flex justify-end gap-2">
-          <Button type="button" size="sm" variant="ghost" onClick={() => startEdit(doctor)}>
-            <Pencil className="size-4" /> Edit
+        <div className="flex justify-end items-center gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={() => startEdit(doctor)}
+            className="text-sm font-medium hover:bg-muted cursor-pointer"
+          >
+            <Pencil className="size-4 mr-1.5" /> Edit
           </Button>
           <ConfirmDialog
             trigger={
-              <Button type="button" size="sm" variant="outline">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="text-sm font-medium cursor-pointer"
+              >
                 {doctor.isActive === false ? "Activate" : "Deactivate"}
               </Button>
             }
@@ -219,8 +266,8 @@ export default function AdminDoctorsPage() {
             }
             description={
               doctor.isActive === false
-                ? "The doctor can be assigned appointments again once availability is set."
-                : "The doctor is excluded from new automatic assignments. Existing appointments are unchanged."
+                ? "The doctor will become eligible for consultation bookings once their schedules are active."
+                : "The doctor will be excluded from new automatic assignments. Existing appointments remain intact."
             }
             confirmLabel={doctor.isActive === false ? "Activate" : "Deactivate"}
             destructive={doctor.isActive !== false}
@@ -232,18 +279,32 @@ export default function AdminDoctorsPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
-        eyebrow="Doctors"
-        title="Doctor profiles and services"
-        description="Public profile data and service eligibility. Availability is configured in Schedules before a doctor can receive assignments."
+        eyebrow="Optometrist Roster"
+        title="Doctors & Specialists"
+        description="Public clinician profiles, professional credentials, and service assignment eligibility."
         actions={
-          <div className="flex gap-2">
-            <Button type="button" variant="outline" onClick={load} disabled={loading}>
-              <RefreshCw className="size-4" /> Refresh
+          <div className="flex items-center gap-2.5">
+            <Button
+              type="button"
+              variant="outline"
+              size="default"
+              onClick={load}
+              disabled={loading}
+              className="rounded-xl border-border/80 shadow-2xs hover:bg-secondary cursor-pointer"
+            >
+              <RefreshCw className="size-4 mr-2" />
+              Refresh
             </Button>
-            <Button type="button" onClick={startCreate}>
-              <Plus className="size-4" /> New doctor
+            <Button
+              type="button"
+              size="default"
+              onClick={startCreate}
+              className="rounded-xl shadow-xs cursor-pointer"
+            >
+              <Plus className="size-4 mr-1.5" />
+              New Doctor
             </Button>
           </div>
         }
@@ -252,156 +313,54 @@ export default function AdminDoctorsPage() {
       {error ? (
         <div
           role="alert"
-          className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive"
+          className="flex items-start gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive"
         >
-          <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-          {error}
+          <AlertCircle className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+          <p className="leading-relaxed">{error}</p>
         </div>
       ) : null}
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">
-            {editingId ? "Edit doctor profile" : "Create a doctor profile"}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
-            <FieldGroup>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field data-invalid={Boolean(form.formState.errors.name)}>
-                  <FieldLabel htmlFor="doctor-name">Display name</FieldLabel>
-                  <Input
-                    id="doctor-name"
-                    aria-invalid={Boolean(form.formState.errors.name)}
-                    {...form.register("name")}
-                  />
-                  <FieldError errors={[form.formState.errors.name]} />
-                </Field>
-                <Field data-invalid={Boolean(form.formState.errors.slug)}>
-                  <FieldLabel htmlFor="doctor-slug">Public slug</FieldLabel>
-                  <Input
-                    id="doctor-slug"
-                    placeholder="dr-elena-reyes"
-                    aria-invalid={Boolean(form.formState.errors.slug)}
-                    {...form.register("slug")}
-                  />
-                  <FieldError errors={[form.formState.errors.slug]} />
-                </Field>
-              </div>
-
-              <Field>
-                <FieldLabel htmlFor="doctor-credentials">Credentials</FieldLabel>
-                <Input
-                  id="doctor-credentials"
-                  placeholder="OD, Optometrist"
-                  {...form.register("credentials")}
-                />
-                <FieldDescription>
-                  Shown under the doctor's name on the public site.
-                </FieldDescription>
-              </Field>
-
-              <Field>
-                <FieldLabel htmlFor="doctor-email">
-                  Invitation email{" "}
-                  <span className="font-normal text-muted-foreground">
-                    (new profiles only)
-                  </span>
-                </FieldLabel>
-                <Input
-                  id="doctor-email"
-                  type="email"
-                  placeholder="doctor@example.com"
-                  {...form.register("email")}
-                />
-                <FieldDescription>
-                  Staff accounts are created through a secure invitation. Never
-                  set a password here.
-                </FieldDescription>
-                <FieldError errors={[form.formState.errors.email]} />
-              </Field>
-
-              <Field>
-                <FieldLabel htmlFor="doctor-bio">Public biography</FieldLabel>
-                <Textarea id="doctor-bio" rows={3} {...form.register("bio")} />
-                <FieldDescription>
-                  Approved public information only. No personal phone numbers or
-                  internal notes.
-                </FieldDescription>
-              </Field>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field>
-                  <FieldLabel htmlFor="doctor-photo">Photo URL</FieldLabel>
-                  <Input
-                    id="doctor-photo"
-                    placeholder="https://…"
-                    {...form.register("photoUrl")}
-                  />
-                  <FieldError errors={[form.formState.errors.photoUrl]} />
-                </Field>
-                <Field orientation="horizontal" className="items-center pt-6">
-                  <input
-                    id="doctor-active"
-                    type="checkbox"
-                    className="size-4 rounded border-input"
-                    {...form.register("isActive")}
-                  />
-                  <FieldLabel htmlFor="doctor-active">Active for assignment</FieldLabel>
-                </Field>
-              </div>
-            </FieldGroup>
-
-            <div className="mt-5 flex flex-wrap gap-2">
-              <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting
-                  ? "Saving…"
-                  : editingId
-                    ? "Save changes"
-                    : "Create doctor"}
-              </Button>
-              {editingId ? (
-                <Button type="button" variant="outline" onClick={startCreate}>
-                  Cancel edit
-                </Button>
-              ) : null}
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-
+      {/* Main Clean Doctors DataTable */}
       {loading ? (
-        <LoadingState title="Loading doctors" />
+        <LoadingState title="Loading doctor roster…" />
       ) : (
         <DataTable
           columns={columns}
           rows={doctors}
           getRowKey={(doctor) => doctor.id}
-          emptyTitle="No doctor profiles"
-          emptyDescription="Create a doctor profile and set availability before accepting assignments."
+          emptyTitle="No doctor profiles found"
+          emptyDescription="Add the first optometrist profile to begin accepting appointments."
         />
       )}
 
-      <Card>
+      {/* Service Eligibility Assignment Card */}
+      <Card className="rounded-2xl border-border/80 shadow-xs">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Stethoscope className="size-4" /> Service eligibility
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+              <Stethoscope className="size-5 text-emerald-600 dark:text-emerald-400" />
+              Doctor-Service Eligibility Matrix
+            </CardTitle>
+            <Badge variant="outline" className="text-xs font-normal">
+              Assignment Rules
+            </Badge>
+          </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-5">
           {doctors.length === 0 ? (
             <EmptyState
               title="Add a doctor first"
-              description="Service eligibility links a doctor to the services they can be assigned."
+              description="Service eligibility links an optometrist to the specific exams and procedures they perform."
             />
           ) : (
             <>
-              <Field className="max-w-sm">
-                <FieldLabel htmlFor="service-doctor">Doctor</FieldLabel>
+              <Field className="max-w-md">
+                <FieldLabel htmlFor="service-doctor" className="text-sm font-medium">
+                  Select doctor to configure
+                </FieldLabel>
                 <Select value={selectedDoctorId} onValueChange={pickDoctorForServices}>
-                  <SelectTrigger id="service-doctor" className="w-full">
-                    <SelectValue placeholder="Choose a doctor" />
+                  <SelectTrigger id="service-doctor" className="w-full h-10 text-sm">
+                    <SelectValue placeholder="Choose an optometrist…" />
                   </SelectTrigger>
                   <SelectContent>
                     {doctors.map((doctor) => (
@@ -414,40 +373,197 @@ export default function AdminDoctorsPage() {
               </Field>
 
               {selectedDoctorId ? (
-                <>
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    {services.map((service) => (
-                      <label
-                        key={service.id}
-                        className="flex items-center gap-2 rounded-md border bg-secondary/30 px-3 py-2 text-sm"
-                      >
-                        <input
-                          type="checkbox"
-                          className="size-4 rounded border-input"
-                          checked={selectedServiceIds.includes(service.id)}
-                          onChange={() => toggleService(service.id)}
-                        />
-                        {service.name}
-                      </label>
-                    ))}
+                <div className="space-y-4 pt-2">
+                  <p className="text-sm text-muted-foreground">
+                    Check the clinical services this optometrist is qualified and scheduled to conduct:
+                  </p>
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {services.map((service) => {
+                      const isChecked = selectedServiceIds.includes(service.id);
+                      return (
+                        <label
+                          key={service.id}
+                          className={`flex items-start gap-3 rounded-xl border p-3.5 transition-colors cursor-pointer select-none ${
+                            isChecked
+                              ? "border-primary/50 bg-primary/5 dark:bg-primary/10"
+                              : "border-border/70 bg-card hover:bg-secondary/40"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            className="mt-0.5 size-4.5 rounded border-input text-primary focus:ring-primary cursor-pointer"
+                            checked={isChecked}
+                            onChange={() => toggleService(service.id)}
+                          />
+                          <div>
+                            <span className="text-sm font-semibold text-foreground block">
+                              {service.name}
+                            </span>
+                            <span className="text-xs text-muted-foreground block">
+                              {service.durationMinutes} min consultation
+                            </span>
+                          </div>
+                        </label>
+                      );
+                    })}
                   </div>
-                  <Button
-                    type="button"
-                    onClick={saveServices}
-                    disabled={savingServices}
-                  >
-                    {savingServices ? "Saving…" : "Save assignments"}
-                  </Button>
-                </>
+
+                  <div className="pt-2">
+                    <Button
+                      type="button"
+                      onClick={saveServices}
+                      disabled={savingServices}
+                      className="cursor-pointer"
+                    >
+                      <UserCheck className="size-4 mr-1.5" />
+                      {savingServices ? "Saving assignments…" : "Save Service Eligibility"}
+                    </Button>
+                  </div>
+                </div>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  Choose a doctor to review which services can be assigned.
+                  Select an optometrist above to review and assign their eligible exam procedures.
                 </p>
               )}
             </>
           )}
         </CardContent>
       </Card>
+
+      {/* Focused Modal Dialog for Create & Edit Doctor */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>
+              {editingId ? "Edit Doctor Profile" : "Create Optometrist Profile"}
+            </DialogTitle>
+            <DialogDescription>
+              Public bio, professional credentials, and login invitation details.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 pt-2" noValidate>
+            <FieldGroup>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field data-invalid={Boolean(form.formState.errors.name)}>
+                  <FieldLabel htmlFor="doctor-name" className="text-sm font-medium">Display name</FieldLabel>
+                  <Input
+                    id="doctor-name"
+                    placeholder="e.g. Dr. Elena Reyes"
+                    className="h-10 text-sm"
+                    aria-invalid={Boolean(form.formState.errors.name)}
+                    {...form.register("name")}
+                  />
+                  <FieldError errors={[form.formState.errors.name]} />
+                </Field>
+
+                <Field data-invalid={Boolean(form.formState.errors.slug)}>
+                  <FieldLabel htmlFor="doctor-slug" className="text-sm font-medium">Public URL slug</FieldLabel>
+                  <Input
+                    id="doctor-slug"
+                    placeholder="dr-elena-reyes"
+                    className="h-10 text-sm"
+                    aria-invalid={Boolean(form.formState.errors.slug)}
+                    {...form.register("slug")}
+                  />
+                  <FieldError errors={[form.formState.errors.slug]} />
+                </Field>
+              </div>
+
+              <Field>
+                <FieldLabel htmlFor="doctor-credentials" className="text-sm font-medium">Credentials</FieldLabel>
+                <Input
+                  id="doctor-credentials"
+                  placeholder="OD, Doctor of Optometry"
+                  className="h-10 text-sm"
+                  {...form.register("credentials")}
+                />
+                <FieldDescription className="text-xs">
+                  Displayed prominently under the clinician's name.
+                </FieldDescription>
+              </Field>
+
+              {!editingId ? (
+                <Field data-invalid={Boolean(form.formState.errors.email)}>
+                  <FieldLabel htmlFor="doctor-email" className="text-sm font-medium">
+                    Invitation Email <span className="font-normal text-muted-foreground">(New profiles)</span>
+                  </FieldLabel>
+                  <Input
+                    id="doctor-email"
+                    type="email"
+                    placeholder="doctor@optico.com.ph"
+                    className="h-10 text-sm"
+                    {...form.register("email")}
+                  />
+                  <FieldDescription className="text-xs">
+                    Staff accounts are invitation-only. The doctor sets their password securely via email.
+                  </FieldDescription>
+                  <FieldError errors={[form.formState.errors.email]} />
+                </Field>
+              ) : null}
+
+              <Field>
+                <FieldLabel htmlFor="doctor-bio" className="text-sm font-medium">Public biography</FieldLabel>
+                <Textarea
+                  id="doctor-bio"
+                  rows={3}
+                  placeholder="Doctor's background, clinical specializations, and patient care philosophy…"
+                  className="text-sm"
+                  {...form.register("bio")}
+                />
+                <FieldError errors={[form.formState.errors.bio]} />
+              </Field>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field>
+                  <FieldLabel htmlFor="doctor-photo" className="text-sm font-medium">Photo URL</FieldLabel>
+                  <Input
+                    id="doctor-photo"
+                    placeholder="https://images.unsplash.com/…"
+                    className="h-10 text-sm"
+                    {...form.register("photoUrl")}
+                  />
+                  <FieldError errors={[form.formState.errors.photoUrl]} />
+                </Field>
+
+                <Field orientation="horizontal" className="flex items-center gap-2 pt-6">
+                  <input
+                    id="doctor-active"
+                    type="checkbox"
+                    className="size-4.5 rounded border-input cursor-pointer"
+                    {...form.register("isActive")}
+                  />
+                  <FieldLabel htmlFor="doctor-active" className="text-sm font-medium cursor-pointer">
+                    Active for appointment scheduling
+                  </FieldLabel>
+                </Field>
+              </div>
+            </FieldGroup>
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsDialogOpen(false)}
+                className="cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={form.formState.isSubmitting}
+                className="cursor-pointer"
+              >
+                {form.formState.isSubmitting
+                  ? "Saving…"
+                  : editingId
+                    ? "Save Changes"
+                    : "Create Doctor"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

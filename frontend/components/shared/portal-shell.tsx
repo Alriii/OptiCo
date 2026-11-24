@@ -80,20 +80,21 @@ export function PortalShell({ role, children }: PortalShellProps) {
   const nav = NAV_BY_ROLE[role];
 
   return (
-    <div className="min-h-screen bg-secondary/40 lg:grid lg:grid-cols-[16rem_1fr]">
+    <div className="min-h-screen bg-secondary/35 lg:grid lg:grid-cols-[17rem_1fr]">
       <aside className="border-b bg-sidebar text-sidebar-foreground lg:flex lg:flex-col lg:justify-between lg:min-h-screen lg:border-r lg:border-sidebar-border">
         <div>
-          <div className="flex items-center justify-between gap-3 px-5 py-4 lg:py-6">
-            <Link href={portal} className="flex items-center gap-2.5">
+          {/* Brand Header */}
+          <div className="flex items-center justify-between gap-3 px-6 py-5 lg:py-6">
+            <Link href={portal} className="flex items-center gap-3 group">
               <img
                 src="/mascot.jpg"
                 alt="OptiCo Mascot"
-                className="size-9 rounded-full object-cover ring-2 ring-sidebar-foreground/20 shadow-xs"
+                className="size-10 rounded-xl object-cover ring-1 ring-sidebar-foreground/20 shadow-xs transition-transform group-hover:scale-105"
               />
-              <span className="flex flex-col leading-none">
-                <span className="text-base font-semibold">OptiCo</span>
-                <span className="text-[11px] uppercase tracking-[0.16em] text-sidebar-foreground/70">
-                  {ROLE_LABELS[role]} portal
+              <span className="flex flex-col leading-tight">
+                <span className="text-base font-bold tracking-tight text-sidebar-foreground">OptiCo</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                  {ROLE_LABELS[role]} Portal
                 </span>
               </span>
             </Link>
@@ -105,9 +106,9 @@ export function PortalShell({ role, children }: PortalShellProps) {
                   <button
                     type="button"
                     aria-label="User account menu"
-                    className="flex size-8 items-center justify-center rounded-full ring-2 ring-sidebar-foreground/20 transition-all hover:ring-primary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring cursor-pointer"
+                    className="flex size-9 items-center justify-center rounded-full ring-2 ring-sidebar-foreground/20 transition-all hover:ring-primary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring cursor-pointer"
                   >
-                    <Avatar size="sm" className="size-8">
+                    <Avatar size="sm" className="size-9">
                       <AvatarFallback className="bg-emerald-600/30 text-emerald-200 font-semibold text-xs">
                         {getInitials(user?.name)}
                       </AvatarFallback>
@@ -118,14 +119,14 @@ export function PortalShell({ role, children }: PortalShellProps) {
                   side="bottom"
                   align="end"
                   sideOffset={8}
-                  className="w-56 rounded-2xl border border-border/80 bg-popover/95 p-1.5 shadow-xl backdrop-blur-md"
+                  className="w-60 rounded-2xl border border-border/80 bg-popover/95 p-2 shadow-xl backdrop-blur-md"
                 >
-                  <DropdownMenuLabel className="p-2 font-normal">
+                  <DropdownMenuLabel className="p-2.5 font-normal">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-xs font-semibold leading-none text-foreground">{user?.name ?? "My Account"}</p>
-                      <p className="text-[11px] text-muted-foreground truncate">{user?.email}</p>
-                      <div className="pt-1">
-                        <Badge variant="outline" className="text-[10px] font-normal">
+                      <p className="text-sm font-semibold leading-none text-foreground">{user?.name ?? "My Account"}</p>
+                      <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                      <div className="pt-1.5">
+                        <Badge variant="outline" className="text-xs font-normal">
                           {ROLE_LABELS[role]}
                         </Badge>
                       </div>
@@ -135,7 +136,7 @@ export function PortalShell({ role, children }: PortalShellProps) {
                   <DropdownMenuItem
                     variant="destructive"
                     onClick={logout}
-                    className="flex items-center gap-2 cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive"
+                    className="flex items-center gap-2 cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive p-2 text-sm"
                   >
                     <LogOut className="size-4" />
                     <span>Sign out</span>
@@ -145,9 +146,10 @@ export function PortalShell({ role, children }: PortalShellProps) {
             </div>
           </div>
 
+          {/* Navigation Links */}
           <nav
             aria-label={`${ROLE_LABELS[role]} navigation`}
-            className="flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-col lg:overflow-visible lg:px-3"
+            className="flex gap-1.5 overflow-x-auto px-4 pb-4 lg:flex-col lg:overflow-visible lg:px-4"
           >
             {nav.map((item) => {
               const active =
@@ -161,39 +163,39 @@ export function PortalShell({ role, children }: PortalShellProps) {
                   href={item.href}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm transition-all",
+                    "flex shrink-0 items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all cursor-pointer",
                     active
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium shadow-xs"
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-xs"
                       : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
                   )}
                 >
-                  <Icon className="size-4" aria-hidden="true" />
-                  {item.label}
+                  <Icon className="size-4.5 shrink-0" aria-hidden="true" />
+                  <span>{item.label}</span>
                 </Link>
               );
             })}
           </nav>
         </div>
 
-        {/* Desktop User Account Pill & Accessible Popover Menu */}
-        <div className="hidden p-3.5 lg:block">
+        {/* Desktop User Account Pill & Popover Menu */}
+        <div className="hidden p-4 lg:block">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
                 aria-label="User account menu"
-                className="group flex w-full items-center gap-3 rounded-2xl border border-sidebar-border/70 bg-sidebar-accent/30 p-2.5 text-left transition-all hover:bg-sidebar-accent/70 hover:border-sidebar-border focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring cursor-pointer"
+                className="group flex w-full items-center gap-3.5 rounded-2xl border border-sidebar-border/80 bg-sidebar-accent/30 p-3 text-left transition-all hover:bg-sidebar-accent/70 hover:border-sidebar-border focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring cursor-pointer"
               >
-                <Avatar size="default" className="size-9 ring-1 ring-sidebar-foreground/20 shrink-0">
-                  <AvatarFallback className="bg-emerald-600/30 text-emerald-200 font-semibold text-xs">
+                <Avatar size="default" className="size-10 ring-1 ring-sidebar-foreground/20 shrink-0">
+                  <AvatarFallback className="bg-emerald-600/30 text-emerald-200 font-semibold text-sm">
                     {getInitials(user?.name)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-semibold text-sidebar-foreground group-hover:text-sidebar-accent-foreground">
+                  <p className="truncate text-sm font-semibold text-sidebar-foreground group-hover:text-sidebar-accent-foreground">
                     {user?.name ?? "Signed in"}
                   </p>
-                  <p className="truncate text-[11px] text-sidebar-foreground/60">
+                  <p className="truncate text-xs text-sidebar-foreground/70">
                     {user?.email ?? ROLE_LABELS[role]}
                   </p>
                 </div>
@@ -204,14 +206,14 @@ export function PortalShell({ role, children }: PortalShellProps) {
               side="top"
               align="start"
               sideOffset={8}
-              className="w-56 rounded-2xl border border-border/80 bg-popover/95 p-1.5 shadow-2xl backdrop-blur-md"
+              className="w-60 rounded-2xl border border-border/80 bg-popover/95 p-2 shadow-2xl backdrop-blur-md"
             >
-              <DropdownMenuLabel className="p-2 font-normal">
+              <DropdownMenuLabel className="p-2.5 font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-xs font-semibold leading-none text-foreground">{user?.name ?? "Signed in"}</p>
-                  <p className="text-[11px] text-muted-foreground truncate">{user?.email}</p>
+                  <p className="text-sm font-semibold leading-none text-foreground">{user?.name ?? "Signed in"}</p>
+                  <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                   <div className="pt-1.5">
-                    <Badge variant="outline" className="text-[10px] font-normal">
+                    <Badge variant="outline" className="text-xs font-normal">
                       {ROLE_LABELS[role]}
                     </Badge>
                   </div>
@@ -221,7 +223,7 @@ export function PortalShell({ role, children }: PortalShellProps) {
               <DropdownMenuItem
                 variant="destructive"
                 onClick={logout}
-                className="flex items-center gap-2 cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive"
+                className="flex items-center gap-2 cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive p-2 text-sm"
               >
                 <LogOut className="size-4" />
                 <span>Sign out</span>
@@ -229,14 +231,14 @@ export function PortalShell({ role, children }: PortalShellProps) {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <p className="mt-2.5 px-1 text-[10px] text-sidebar-foreground/50">
+          <p className="mt-3 px-1 text-xs text-sidebar-foreground/50">
             OptiCo Clinic System · Makati City
           </p>
         </div>
       </aside>
 
       <main className="min-w-0">
-        <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
+        <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-10 lg:py-12">
           {children}
         </div>
       </main>

@@ -18,16 +18,16 @@ export function StatCard({
   className,
 }: StatCardProps) {
   return (
-    <Card className={cn("gap-0 py-5", className)}>
-      <CardContent className="flex items-start justify-between gap-3 px-5">
-        <div className="space-y-1">
-          <p className="text-sm text-muted-foreground">{label}</p>
-          <p className="text-2xl font-semibold tracking-tight">{value}</p>
-          {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
+    <Card className={cn("gap-0 p-6 rounded-2xl border-border/80 shadow-xs hover:border-primary/30 transition-all", className)}>
+      <CardContent className="flex items-start justify-between gap-4 p-0">
+        <div className="space-y-1.5 min-w-0">
+          <p className="text-sm font-medium text-muted-foreground">{label}</p>
+          <p className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">{value}</p>
+          {hint ? <p className="text-sm text-muted-foreground/80 leading-normal">{hint}</p> : null}
         </div>
         {Icon ? (
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-secondary text-primary">
-            <Icon className="size-5" aria-hidden="true" />
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/20">
+            <Icon className="size-6" aria-hidden="true" />
           </span>
         ) : null}
       </CardContent>

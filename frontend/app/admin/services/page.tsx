@@ -20,10 +20,17 @@ import { LoadingState } from "@/components/shared/loading-state";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { usePageMeta } from "@/lib/use-page-meta";
 
 const EMPTY: ServiceFormInput = {
@@ -48,6 +55,7 @@ export default function AdminServicesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const form = useForm<ServiceFormInput>({
     resolver: zodResolver(serviceFormSchema),
@@ -75,6 +83,7 @@ export default function AdminServicesPage() {
   const startCreate = () => {
     setEditingId(null);
     form.reset(EMPTY);
+    setIsDialogOpen(true);
   };
 
   const startEdit = (service: Service) => {
@@ -90,17 +99,19 @@ export default function AdminServicesPage() {
       isActive: service.isActive ?? true,
       displayOrder: service.displayOrder ?? 0,
     });
+    setIsDialogOpen(true);
   };
 
   const onSubmit = async (values: ServiceFormInput) => {
     try {
       if (editingId) {
         await adminService.updateService(editingId, values);
-        toast.success("Service updated.");
+        toast.success("Service updated successfully.");
       } else {
         await adminService.createService(values);
-        toast.success("Service created.");
+        toast.success("New service created.");
       }
+      setIsDialogOpen(false);
       setEditingId(null);
       form.reset(EMPTY);
       await load();
@@ -125,33 +136,52 @@ export default function AdminServicesPage() {
       key: "name",
       header: "Service",
       cell: (service) => (
-        <div>
-          <p className="font-medium">{service.name}</p>
-          <p className="text-xs text-muted-foreground">{service.slug ?? "—"}</p>
+        <div className="space-y-0.5">
+          <p className="font-semibold text-base text-foreground">{service.name}</p>
+          {service.description ? (
+            <p className="text-xs text-muted-foreground line-clamp-1 max-w-sm">
+              {service.description}
+            </p>
+          ) : null}
+          <p className="text-xs font-mono text-muted-foreground/70">{service.slug ?? "—"}</p>
         </div>
       ),
     },
     {
       key: "duration",
       header: "Duration",
-      cell: (service) => `${service.durationMinutes ?? "—"} min`,
+      cell: (service) => (
+        <span className="font-medium text-sm text-foreground">
+          {service.durationMinutes ?? "—"} min
+        </span>
+      ),
     },
     {
       key: "buffers",
-      header: "Buffers",
-      cell: (service) =>
-        `${service.bufferBeforeMinutes ?? 0} / ${service.bufferAfterMinutes ?? 0} min`,
+      header: "Buffers (Before / After)",
+      cell: (service) => (
+        <span className="text-sm text-muted-foreground">
+          {service.bufferBeforeMinutes ?? 0}m / {service.bufferAfterMinutes ?? 0}m
+        </span>
+      ),
     },
     {
       key: "fee",
-      header: "Fee",
-      cell: (service) => formatCurrency(service.fee),
+      header: "Standard Fee",
+      cell: (service) => (
+        <span className="font-semibold text-base text-foreground">
+          {formatCurrency(service.fee)}
+        </span>
+      ),
     },
     {
       key: "active",
       header: "Status",
       cell: (service) => (
-        <Badge variant={service.isActive === false ? "outline" : "secondary"}>
+        <Badge
+          variant={service.isActive === false ? "outline" : "secondary"}
+          className="text-xs px-2.5 py-0.5"
+        >
           {service.isActive === false ? "Inactive" : "Active"}
         </Badge>
       ),
@@ -160,13 +190,24 @@ export default function AdminServicesPage() {
       key: "actions",
       header: "",
       cell: (service) => (
-        <div className="flex justify-end gap-2">
-          <Button type="button" size="sm" variant="ghost" onClick={() => startEdit(service)}>
-            <Pencil className="size-4" /> Edit
+        <div className="flex justify-end items-center gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={() => startEdit(service)}
+            className="text-sm font-medium hover:bg-muted cursor-pointer"
+          >
+            <Pencil className="size-4 mr-1.5" /> Edit
           </Button>
           <ConfirmDialog
             trigger={
-              <Button type="button" size="sm" variant="outline">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="text-sm font-medium cursor-pointer"
+              >
                 {service.isActive === false ? "Activate" : "Deactivate"}
               </Button>
             }
@@ -177,8 +218,8 @@ export default function AdminServicesPage() {
             }
             description={
               service.isActive === false
-                ? "The service becomes available for public booking."
-                : "The service is hidden from new public booking. Existing appointments keep their snapshots."
+                ? "The service will become available for public patient bookings."
+                : "The service will be hidden from new bookings. Existing appointments retain their records."
             }
             confirmLabel={service.isActive === false ? "Activate" : "Deactivate"}
             destructive={service.isActive !== false}
@@ -190,18 +231,32 @@ export default function AdminServicesPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
-        eyebrow="Service catalog"
-        title="Services and fees"
-        description="Durations, buffers, fees, and display order are clinic configuration. Appointment snapshots protect historical records."
+        eyebrow="Service Catalog"
+        title="Services & Fees"
+        description="Configure clinical exam types, consultation durations, buffers, and standard fees."
         actions={
-          <div className="flex gap-2">
-            <Button type="button" variant="outline" onClick={load} disabled={loading}>
-              <RefreshCw className="size-4" /> Refresh
+          <div className="flex items-center gap-2.5">
+            <Button
+              type="button"
+              variant="outline"
+              size="default"
+              onClick={load}
+              disabled={loading}
+              className="rounded-xl border-border/80 shadow-2xs hover:bg-secondary cursor-pointer"
+            >
+              <RefreshCw className="size-4 mr-2" />
+              Refresh
             </Button>
-            <Button type="button" onClick={startCreate}>
-              <Plus className="size-4" /> New service
+            <Button
+              type="button"
+              size="default"
+              onClick={startCreate}
+              className="rounded-xl shadow-xs cursor-pointer"
+            >
+              <Plus className="size-4 mr-1.5" />
+              New Service
             </Button>
           </div>
         }
@@ -210,37 +265,59 @@ export default function AdminServicesPage() {
       {error ? (
         <div
           role="alert"
-          className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive"
+          className="flex items-start gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive"
         >
-          <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-          {error}
+          <AlertCircle className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+          <p className="leading-relaxed">{error}</p>
         </div>
       ) : null}
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">
-            {editingId ? "Edit service" : "Create a service"}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
+      {/* Main Clean Data Table */}
+      {loading ? (
+        <LoadingState title="Loading service catalog…" />
+      ) : (
+        <DataTable
+          columns={columns}
+          rows={services}
+          getRowKey={(service) => service.id}
+          emptyTitle="No services configured"
+          emptyDescription="Create the clinic's first optical service to enable online booking."
+        />
+      )}
+
+      {/* Focused Modal Dialog for Create & Edit */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>
+              {editingId ? "Edit Service" : "Create New Service"}
+            </DialogTitle>
+            <DialogDescription>
+              Set service name, duration, consultation fees, and appointment buffers.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 pt-2" noValidate>
             <FieldGroup>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field data-invalid={Boolean(form.formState.errors.name)}>
-                  <FieldLabel htmlFor="service-name">Name</FieldLabel>
+                  <FieldLabel htmlFor="service-name" className="text-sm font-medium">Service name</FieldLabel>
                   <Input
                     id="service-name"
+                    placeholder="e.g. Comprehensive Eye Exam"
+                    className="h-10 text-sm"
                     aria-invalid={Boolean(form.formState.errors.name)}
                     {...form.register("name")}
                   />
                   <FieldError errors={[form.formState.errors.name]} />
                 </Field>
+
                 <Field data-invalid={Boolean(form.formState.errors.slug)}>
-                  <FieldLabel htmlFor="service-slug">Slug</FieldLabel>
+                  <FieldLabel htmlFor="service-slug" className="text-sm font-medium">URL Slug</FieldLabel>
                   <Input
                     id="service-slug"
                     placeholder="comprehensive-eye-exam"
+                    className="h-10 text-sm"
                     aria-invalid={Boolean(form.formState.errors.slug)}
                     {...form.register("slug")}
                   />
@@ -249,10 +326,12 @@ export default function AdminServicesPage() {
               </div>
 
               <Field data-invalid={Boolean(form.formState.errors.description)}>
-                <FieldLabel htmlFor="service-description">Description</FieldLabel>
+                <FieldLabel htmlFor="service-description" className="text-sm font-medium">Description</FieldLabel>
                 <Textarea
                   id="service-description"
-                  rows={2}
+                  rows={3}
+                  placeholder="Clinical purpose and what is included in this examination…"
+                  className="text-sm"
                   {...form.register("description")}
                 />
                 <FieldError errors={[form.formState.errors.description]} />
@@ -260,31 +339,36 @@ export default function AdminServicesPage() {
 
               <div className="grid gap-4 sm:grid-cols-3">
                 <Field data-invalid={Boolean(form.formState.errors.durationMinutes)}>
-                  <FieldLabel htmlFor="service-duration">Duration (min)</FieldLabel>
+                  <FieldLabel htmlFor="service-duration" className="text-sm font-medium">Duration (min)</FieldLabel>
                   <Input
                     id="service-duration"
                     type="number"
                     min="5"
+                    className="h-10 text-sm"
                     aria-invalid={Boolean(form.formState.errors.durationMinutes)}
                     {...form.register("durationMinutes", { valueAsNumber: true })}
                   />
                   <FieldError errors={[form.formState.errors.durationMinutes]} />
                 </Field>
+
                 <Field>
-                  <FieldLabel htmlFor="service-buffer-before">Buffer before</FieldLabel>
+                  <FieldLabel htmlFor="service-buffer-before" className="text-sm font-medium">Buffer before</FieldLabel>
                   <Input
                     id="service-buffer-before"
                     type="number"
                     min="0"
+                    className="h-10 text-sm"
                     {...form.register("bufferBeforeMinutes", { valueAsNumber: true })}
                   />
                 </Field>
+
                 <Field>
-                  <FieldLabel htmlFor="service-buffer-after">Buffer after</FieldLabel>
+                  <FieldLabel htmlFor="service-buffer-after" className="text-sm font-medium">Buffer after</FieldLabel>
                   <Input
                     id="service-buffer-after"
                     type="number"
                     min="0"
+                    className="h-10 text-sm"
                     {...form.register("bufferAfterMinutes", { valueAsNumber: true })}
                   />
                 </Field>
@@ -292,70 +376,68 @@ export default function AdminServicesPage() {
 
               <div className="grid gap-4 sm:grid-cols-3">
                 <Field data-invalid={Boolean(form.formState.errors.fee)}>
-                  <FieldLabel htmlFor="service-fee">Fee (PHP)</FieldLabel>
+                  <FieldLabel htmlFor="service-fee" className="text-sm font-medium">Fee (PHP)</FieldLabel>
                   <Input
                     id="service-fee"
                     type="number"
                     min="0"
                     step="0.01"
+                    className="h-10 text-sm"
                     aria-invalid={Boolean(form.formState.errors.fee)}
                     {...form.register("fee", { valueAsNumber: true })}
                   />
                   <FieldError errors={[form.formState.errors.fee]} />
                 </Field>
+
                 <Field>
-                  <FieldLabel htmlFor="service-order">Display order</FieldLabel>
+                  <FieldLabel htmlFor="service-order" className="text-sm font-medium">Display order</FieldLabel>
                   <Input
                     id="service-order"
                     type="number"
                     min="0"
+                    className="h-10 text-sm"
                     {...form.register("displayOrder", { valueAsNumber: true })}
                   />
                 </Field>
-                <Field orientation="horizontal" className="items-center pt-6">
+
+                <Field orientation="horizontal" className="flex items-center gap-2 pt-6">
                   <input
                     id="service-active"
                     type="checkbox"
-                    className="size-4 rounded border-input"
+                    className="size-4.5 rounded border-input cursor-pointer"
                     {...form.register("isActive")}
                   />
-                  <FieldLabel htmlFor="service-active">Active for booking</FieldLabel>
+                  <FieldLabel htmlFor="service-active" className="text-sm font-medium cursor-pointer">
+                    Active for booking
+                  </FieldLabel>
                 </Field>
               </div>
             </FieldGroup>
 
-            <div className="mt-5 flex flex-wrap gap-2">
-              <Button type="submit" disabled={form.formState.isSubmitting}>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsDialogOpen(false)}
+                className="cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={form.formState.isSubmitting}
+                className="cursor-pointer"
+              >
                 {form.formState.isSubmitting
                   ? "Saving…"
                   : editingId
-                    ? "Save changes"
-                    : "Create service"}
+                    ? "Save Changes"
+                    : "Create Service"}
               </Button>
-              {editingId ? (
-                <Button type="button" variant="outline" onClick={startCreate}>
-                  Cancel edit
-                </Button>
-              ) : null}
-              <FieldDescription className="self-center">
-                All configured fees apply to online bookings and cashiering.
-              </FieldDescription>
-            </div>
+            </DialogFooter>
           </form>
-        </CardContent>
-      </Card>
-
-      {loading ? (
-        <LoadingState title="Loading services" />
-      ) : (
-        <DataTable
-          columns={columns}
-          rows={services}
-          getRowKey={(service) => service.id}
-          emptyTitle="No services configured"
-          emptyDescription="Create the clinic's first service to enable public booking."
-        />
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
