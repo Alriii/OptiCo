@@ -1,4 +1,4 @@
-﻿import type { Request, Response } from "express";
+import type { Request, Response } from "express";
 import { routeParam, success } from "@/lib/http";
 import type { AuthenticatedRequest } from "@/middlewares/auth-middleware";
 import {

@@ -39,10 +39,6 @@ function originAllowed(req: Request): boolean {
 }
 
 export class CsrfMiddleware {
-  /**
-   * Cookie-authenticated mutations need the double-submit token. Verified Bearer
-   * clients are exempt because the browser cannot attach the token automatically.
-   */
   public execute = (req: Request, res: Response, next: NextFunction) => {
     if (SAFE_METHODS.has(req.method)) return next();
 
