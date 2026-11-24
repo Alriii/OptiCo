@@ -80,8 +80,8 @@ export function PortalShell({ role, children }: PortalShellProps) {
   const nav = NAV_BY_ROLE[role];
 
   return (
-    <div className="min-h-screen bg-secondary/35 lg:grid lg:grid-cols-[17rem_1fr]">
-      <aside className="border-b bg-sidebar text-sidebar-foreground lg:flex lg:flex-col lg:justify-between lg:min-h-screen lg:border-r lg:border-sidebar-border">
+    <div className="min-h-screen bg-secondary/35 lg:h-screen lg:overflow-hidden lg:grid lg:grid-cols-[17rem_1fr]">
+      <aside className="border-b bg-sidebar text-sidebar-foreground lg:flex lg:h-screen lg:flex-col lg:justify-between lg:overflow-y-auto lg:border-r lg:border-b-0 lg:border-sidebar-border">
         <div>
           {/* Brand Header */}
           <div className="flex items-center justify-between gap-3 px-6 py-5 lg:py-6">
@@ -237,7 +237,7 @@ export function PortalShell({ role, children }: PortalShellProps) {
         </div>
       </aside>
 
-      <main className="min-w-0">
+      <main className="min-w-0 flex-1 lg:h-screen lg:overflow-y-auto">
         <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-10 lg:py-12">
           {children}
         </div>
