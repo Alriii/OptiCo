@@ -4,7 +4,7 @@ import { PortalShell } from "@/components/shared/portal-shell";
 import { PublicNav } from "@/components/shared/public-nav";
 import { PublicFooter } from "@/components/public/public-footer";
 
-// Public pages
+// Public page routes.
 import HomePage from "@/app/(public)/page";
 import ServicesPage from "@/app/(public)/services/page";
 import DoctorsPage from "@/app/(public)/doctors/page";
@@ -15,31 +15,31 @@ import CancellationPage from "@/app/(public)/policies/cancellation/page";
 import PrivacyPage from "@/app/(public)/policies/privacy/page";
 import TermsPage from "@/app/(public)/policies/terms/page";
 
-// Auth pages
+// Authentication page routes.
 import LoginPage from "@/app/(auth)/login/page";
 import SignupPage from "@/app/(auth)/signup/page";
 import AcceptInvitePage from "@/app/(auth)/accept-invite/page";
 
-// Portal redirect
+// Portal redirection route.
 import PortalRedirectPage from "@/app/portal/page";
 
-// Patient portal pages
+// Patient portal page routes.
 import PatientDashboardPage from "@/app/patient/page";
 import PatientAppointmentsPage from "@/app/patient/appointments/page";
 import PatientProfilePage from "@/app/patient/profile/page";
 
-// Doctor portal pages
+// Doctor portal page routes.
 import DoctorDashboardPage from "@/app/doctor/page";
 import DoctorSchedulePage from "@/app/doctor/schedule/page";
 import DoctorAvailabilityPage from "@/app/doctor/availability/page";
 
-// Staff portal pages
+// Staff portal page routes.
 import StaffQueuePage from "@/app/staff/page";
 import StaffAppointmentsPage from "@/app/staff/appointments/page";
 import StaffCalendarPage from "@/app/staff/calendar/page";
 import StaffWalkInsPage from "@/app/staff/walk-ins/page";
 
-// Admin portal pages
+// Admin portal page routes.
 import AdminOverviewPage from "@/app/admin/page";
 import AdminDoctorsPage from "@/app/admin/doctors/page";
 import AdminStaffPage from "@/app/admin/staff/page";
@@ -48,6 +48,7 @@ import AdminSchedulesPage from "@/app/admin/schedules/page";
 import AdminSettingsPage from "@/app/admin/settings/page";
 import AdminAuditLogsPage from "@/app/admin/audit-logs/page";
 
+// Public clinic site wrapper.
 function PublicLayout() {
   return (
     <div className="flex min-h-screen flex-col">
@@ -60,13 +61,14 @@ function PublicLayout() {
   );
 }
 
+// Split screen authentication layout.
 function AuthLayout() {
   return (
     <AuthGuard guestOnly>
       <div className="grid min-h-screen lg:grid-cols-2">
-        {/* Left Column: Optical Clinic Visual Experience with Photography (Desktop Only) */}
+        {/* Clinic photography visual column. */}
         <div className="relative hidden lg:flex flex-col justify-between overflow-hidden bg-slate-950 p-12 xl:p-16 text-white border-r border-border/20">
-          {/* High-Resolution Optical Photography Backdrop */}
+          {/* Background photography visual layer. */}
           <div className="absolute inset-0 z-0">
             <img
               src="https://images.unsplash.com/photo-1591076482161-42ce6da69f67?auto=format&fit=crop&w=1600&q=85"
@@ -74,11 +76,11 @@ function AuthLayout() {
               className="size-full object-cover object-center"
               loading="eager"
             />
-            {/* Sophisticated Dark Gradient Vignette Overlay for Crisp Readability */}
+            {/* Dark gradient vignette layer. */}
             <div className="absolute inset-0 bg-gradient-to-t from-[#061814]/95 via-[#061814]/65 to-[#061814]/75" />
           </div>
 
-          {/* Top Brand Header */}
+          {/* Clinic brand identity header. */}
           <div className="relative z-10 flex items-center justify-between">
             <Link to="/" className="flex items-center gap-3 transition-opacity hover:opacity-90">
               <img
@@ -96,7 +98,7 @@ function AuthLayout() {
             <span className="text-xs text-white/50 font-normal">Makati City, Philippines</span>
           </div>
 
-          {/* Center Editorial Statement */}
+          {/* Brand philosophy statement block. */}
           <div className="relative z-10 max-w-lg space-y-4">
             <blockquote className="text-2xl xl:text-3xl font-light tracking-tight leading-snug text-white/95">
               “Precision in every prescription. Thoughtful care in every consultation.”
@@ -106,16 +108,16 @@ function AuthLayout() {
             </p>
           </div>
 
-          {/* Bottom Clinical Metadata */}
+          {/* Clinical credential footer metadata. */}
           <div className="relative z-10 flex items-center justify-between text-xs text-white/45">
             <span>Optical Health & Vision Care</span>
             <span>Accredited Clinical Network</span>
           </div>
         </div>
 
-        {/* Right Column: Focused Minimalist Form */}
+        {/* Form container column layout. */}
         <div className="flex min-h-screen flex-col justify-between bg-background p-6 sm:p-10 lg:p-12 xl:p-16">
-          {/* Top Header Navigation (Mobile logo, Desktop back link) */}
+          {/* Top form navigation bar. */}
           <div className="flex items-center justify-between lg:justify-end">
             <Link to="/" className="flex items-center gap-2.5 transition-opacity hover:opacity-80 lg:hidden">
               <img
@@ -135,12 +137,12 @@ function AuthLayout() {
             </Link>
           </div>
 
-          {/* Form Outlet */}
+          {/* Authentication view form container. */}
           <div className="mx-auto my-auto w-full max-w-[360px] py-10">
             <Outlet />
           </div>
 
-          {/* Bottom Footer */}
+          {/* Form bottom legal footer. */}
           <div className="flex items-center justify-between text-xs text-muted-foreground/60">
             <span>© 2026 OptiCo Clinic</span>
             <div className="flex items-center gap-4">
@@ -155,6 +157,7 @@ function AuthLayout() {
   );
 }
 
+// Patient self-service portal view.
 function PatientPortalLayout() {
   return (
     <AuthGuard roles={["PATIENT"]}>
@@ -165,6 +168,7 @@ function PatientPortalLayout() {
   );
 }
 
+// Doctor clinic consultation view.
 function DoctorPortalLayout() {
   return (
     <AuthGuard roles={["DOCTOR"]}>
@@ -175,6 +179,7 @@ function DoctorPortalLayout() {
   );
 }
 
+// Reception desk staff view.
 function StaffPortalLayout() {
   return (
     <AuthGuard roles={["RECEPTIONIST", "ADMIN"]}>
@@ -185,6 +190,7 @@ function StaffPortalLayout() {
   );
 }
 
+// Administrator clinic management view.
 function AdminPortalLayout() {
   return (
     <AuthGuard roles={["ADMIN"]}>
@@ -195,10 +201,11 @@ function AdminPortalLayout() {
   );
 }
 
+// Root router route tree.
 export default function App() {
   return (
     <Routes>
-      {/* Public routes */}
+      {/* Public clinic page routes. */}
       <Route element={<PublicLayout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/services" element={<ServicesPage />} />
@@ -211,31 +218,31 @@ export default function App() {
         <Route path="/policies/terms" element={<TermsPage />} />
       </Route>
 
-      {/* Auth routes */}
+      {/* Account authentication page routes. */}
       <Route element={<AuthLayout />}>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/accept-invite" element={<AcceptInvitePage />} />
       </Route>
 
-      {/* Universal portal redirect */}
+      {/* Role portal redirect route. */}
       <Route path="/portal" element={<PortalRedirectPage />} />
 
-      {/* Patient portal */}
+      {/* Patient self service routes. */}
       <Route element={<PatientPortalLayout />}>
         <Route path="/patient" element={<PatientDashboardPage />} />
         <Route path="/patient/appointments" element={<PatientAppointmentsPage />} />
         <Route path="/patient/profile" element={<PatientProfilePage />} />
       </Route>
 
-      {/* Doctor portal */}
+      {/* Doctor clinical consultation routes. */}
       <Route element={<DoctorPortalLayout />}>
         <Route path="/doctor" element={<DoctorDashboardPage />} />
         <Route path="/doctor/schedule" element={<DoctorSchedulePage />} />
         <Route path="/doctor/availability" element={<DoctorAvailabilityPage />} />
       </Route>
 
-      {/* Staff portal */}
+      {/* Front desk operations routes. */}
       <Route element={<StaffPortalLayout />}>
         <Route path="/staff" element={<StaffQueuePage />} />
         <Route path="/staff/appointments" element={<StaffAppointmentsPage />} />
@@ -243,7 +250,7 @@ export default function App() {
         <Route path="/staff/walk-ins" element={<StaffWalkInsPage />} />
       </Route>
 
-      {/* Admin portal */}
+      {/* Administrator management console routes. */}
       <Route element={<AdminPortalLayout />}>
         <Route path="/admin" element={<AdminOverviewPage />} />
         <Route path="/admin/doctors" element={<AdminDoctorsPage />} />
@@ -254,7 +261,7 @@ export default function App() {
         <Route path="/admin/audit-logs" element={<AdminAuditLogsPage />} />
       </Route>
 
-      {/* Fallback */}
+      {/* Catch all wildcard redirect. */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

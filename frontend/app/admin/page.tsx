@@ -10,7 +10,6 @@ import {
   ClipboardList,
   FileClock,
   ListOrdered,
-  Plus,
   RefreshCw,
   Settings,
   ShieldCheck,
@@ -99,20 +98,20 @@ export default function AdminOverviewPage() {
               hint="Awaiting triage & review"
             />
             <StatCard
-              label="Confirmed today"
-              value={overview?.confirmedToday ?? 0}
+              label="Appointments today"
+              value={overview?.todayAppointments ?? 0}
               icon={CalendarCheck}
               hint="Scheduled consultations"
             />
             <StatCard
               label="Walk-ins in queue"
-              value={overview?.walkInsWaiting ?? 0}
+              value={overview?.waitingWalkIns ?? 0}
               icon={ListOrdered}
               hint="Active on today's floor"
             />
             <StatCard
               label="Active optometrists"
-              value={overview?.doctorsActive ?? 0}
+              value={overview?.activeDoctors ?? 0}
               icon={Stethoscope}
               hint="Available for booking"
             />
@@ -156,7 +155,7 @@ export default function AdminOverviewPage() {
                       <Stethoscope className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
                     </div>
                     <p className="mt-2 text-xs text-muted-foreground">
-                      {overview?.doctorsActive ?? 0} active doctors configured
+                      {overview?.activeDoctors ?? 0} active doctors configured
                     </p>
                   </Link>
 

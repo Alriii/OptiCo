@@ -6,7 +6,6 @@ import {
   AlertCircle,
   ArrowLeft,
   ArrowRight,
-  Calendar,
   CalendarCheck,
   CheckCircle2,
   Clock,
@@ -14,7 +13,6 @@ import {
   RefreshCw,
   ShieldCheck,
   Sparkles,
-  UserCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { publicService } from "@/services/public.service";
@@ -42,6 +40,7 @@ const STEPS = [
   { id: 3, label: "Review & Confirm" },
 ] as const;
 
+// Unified appointment booking component.
 export function BookingFlow({ initialServiceId }: { initialServiceId?: string }) {
   const { user } = useAuth();
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
@@ -70,6 +69,7 @@ export function BookingFlow({ initialServiceId }: { initialServiceId?: string })
     return next.toISOString().slice(0, 10);
   }, []);
 
+  // Fetch active clinic services.
   const loadServices = () => {
     setLoadingServices(true);
     setServicesError(null);
@@ -111,7 +111,7 @@ export function BookingFlow({ initialServiceId }: { initialServiceId?: string })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Fetch patient profile to pre-fill verified mobile contact
+  // Pre-fill patient contact number.
   useEffect(() => {
     if (!user) return;
     patientService
@@ -124,7 +124,7 @@ export function BookingFlow({ initialServiceId }: { initialServiceId?: string })
       .catch(() => {});
   }, [user]);
 
-  // Fetch slots whenever service and date change
+  // Fetch available time slots.
   useEffect(() => {
     if (!selectedService || !date) return;
 
@@ -153,6 +153,7 @@ export function BookingFlow({ initialServiceId }: { initialServiceId?: string })
     };
   }, [selectedService, date]);
 
+  // Submit patient appointment request.
   const submit = async () => {
     if (!selectedService || !selectedSlot) return;
 
@@ -204,7 +205,7 @@ export function BookingFlow({ initialServiceId }: { initialServiceId?: string })
     );
   }
 
-  // Step 4: Success / Confirmation
+  // Render booking confirmation view.
   if (step === 4 && result) {
     return (
       <Card className="mx-auto max-w-2xl rounded-2xl border-border/80 shadow-md">
@@ -269,7 +270,7 @@ export function BookingFlow({ initialServiceId }: { initialServiceId?: string })
 
   return (
     <div className="space-y-8">
-      {/* Sleek Modern Stepper Progress Bar */}
+      {/* Booking steps progress bar. */}
       <nav aria-label="Booking steps" className="border-b border-border/70 pb-6">
         <ol className="flex flex-wrap items-center gap-3 sm:gap-6 text-sm">
           {STEPS.map((s, idx) => {
@@ -309,7 +310,7 @@ export function BookingFlow({ initialServiceId }: { initialServiceId?: string })
         </ol>
       </nav>
 
-      {/* STEP 1: SELECT CLINICAL SERVICE */}
+      {/* Step one service selection. */}
       {step === 1 ? (
         <section className="space-y-6" aria-labelledby="choose-service">
           <div>
@@ -387,7 +388,7 @@ export function BookingFlow({ initialServiceId }: { initialServiceId?: string })
         </section>
       ) : null}
 
-      {/* STEP 2: UNIFIED DATE & TIME SELECTOR */}
+      {/* Step two schedule selection. */}
       {step === 2 ? (
         <section className="space-y-6" aria-labelledby="choose-datetime">
           {/* Active Service Banner */}
@@ -549,7 +550,7 @@ export function BookingFlow({ initialServiceId }: { initialServiceId?: string })
         </section>
       ) : null}
 
-      {/* STEP 3: REVIEW & CONFIRM */}
+      {/* Step three request review. */}
       {step === 3 ? (
         <section className="space-y-6" aria-labelledby="review-request">
           <div>
@@ -579,7 +580,7 @@ export function BookingFlow({ initialServiceId }: { initialServiceId?: string })
           ) : null}
 
           <div className="grid gap-6 lg:grid-cols-12">
-            {/* Left: Patient Verification Card */}
+            {/* Patient verification summary card. */}
             <div className="lg:col-span-5 space-y-4">
               <Card className="rounded-2xl border-border/80 shadow-xs">
                 <CardContent className="p-6 space-y-4">
@@ -619,7 +620,7 @@ export function BookingFlow({ initialServiceId }: { initialServiceId?: string })
               </Card>
             </div>
 
-            {/* Right: Appointment Summary & Note */}
+            {/* Consultation summary notes card. */}
             <div className="lg:col-span-7 space-y-4">
               <Card className="rounded-2xl border-border/80 shadow-xs">
                 <CardContent className="p-6 space-y-5">
@@ -652,7 +653,7 @@ export function BookingFlow({ initialServiceId }: { initialServiceId?: string })
                     </div>
                   </div>
 
-                  {/* Optional Note */}
+                  {/* Optional clinical visit note. */}
                   <Field>
                     <FieldLabel htmlFor="booking-note" className="text-sm font-medium">
                       Consultation Notes <span className="font-normal text-muted-foreground">(Optional)</span>

@@ -30,8 +30,8 @@ export interface AuthUser {
 export interface ClinicHour {
   weekday: number | string;
   open: boolean;
-  openTime?: string;
-  closeTime?: string;
+  openTime?: string | null;
+  closeTime?: string | null;
 }
 
 export interface ClinicInfo {
@@ -118,7 +118,7 @@ export interface Appointment {
 export interface AppointmentListMeta {
   total?: number;
   page?: number;
-  pageSize?: number;
+  limit?: number;
 }
 
 export interface PatientProfile {
@@ -166,9 +166,9 @@ export interface DoctorAvailability {
 
 export interface ScheduleException {
   id: string;
-  date?: string;
-  startAt?: string;
-  endAt?: string;
+  date: string;
+  startTime: string;
+  endTime: string;
   type: string;
   reason?: string;
 }
@@ -180,17 +180,17 @@ export interface ClinicClosure {
 }
 
 export interface ClinicSettings {
+  id?: string;
   name?: string;
-  address?: string;
-  phone?: string;
-  email?: string;
+  description?: string | null;
+  address?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  timezone?: string;
+  currency?: string;
   cancellationCutoffHours?: number;
-  bookingNoticeHours?: number;
-  policies?: {
-    privacy?: string;
-    terms?: string;
-    cancellation?: string;
-  };
+  guestLinkTtlHours?: number;
+  updatedAt?: string;
   [key: string]: unknown;
 }
 
@@ -206,17 +206,19 @@ export interface AuditLog {
 }
 
 export interface AdminOverview {
+  date?: string;
   pendingAppointments?: number;
-  confirmedToday?: number;
-  walkInsWaiting?: number;
-  doctorsActive?: number;
+  todayAppointments?: number;
+  activeDoctors?: number;
   activeServices?: number;
+  patients?: number;
+  waitingWalkIns?: number;
   [key: string]: unknown;
 }
 
 export interface PaginationParams {
   page?: number;
-  pageSize?: number;
+  limit?: number;
 }
 
 export interface StaffAppointmentParams extends PaginationParams {
@@ -226,5 +228,6 @@ export interface StaffAppointmentParams extends PaginationParams {
 
 export interface AuditLogParams extends PaginationParams {
   action?: string;
-  date?: string;
+  from?: string;
+  to?: string;
 }

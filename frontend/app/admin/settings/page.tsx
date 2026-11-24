@@ -18,7 +18,6 @@ import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { usePageMeta } from "@/lib/use-page-meta";
 import {
   Field,
@@ -34,7 +33,6 @@ const EMPTY: SettingsInput = {
   phone: "",
   email: "",
   cancellationCutoffHours: 24,
-  bookingNoticeHours: 2,
 };
 
 export default function AdminSettingsPage() {
@@ -46,9 +44,6 @@ export default function AdminSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [settings, setSettings] = useState<ClinicSettings | null>(null);
-  const [policyPrivacy, setPolicyPrivacy] = useState("");
-  const [policyTerms, setPolicyTerms] = useState("");
-  const [policyCancellation, setPolicyCancellation] = useState("");
 
   const form = useForm<SettingsInput>({
     resolver: zodResolver(settingsSchema),
@@ -69,11 +64,7 @@ export default function AdminSettingsPage() {
         phone: data?.phone ?? "",
         email: data?.email ?? "",
         cancellationCutoffHours: data?.cancellationCutoffHours ?? 24,
-        bookingNoticeHours: data?.bookingNoticeHours ?? 2,
       });
-      setPolicyPrivacy(data?.policies?.privacy ?? "");
-      setPolicyTerms(data?.policies?.terms ?? "");
-      setPolicyCancellation(data?.policies?.cancellation ?? "");
     } catch (err) {
       setError(getApiError(err, "Clinic settings could not be loaded."));
     } finally {
@@ -87,14 +78,7 @@ export default function AdminSettingsPage() {
 
   const onSubmit = async (values: SettingsInput) => {
     try {
-      const response = await adminService.updateSettings({
-        ...values,
-        policies: {
-          privacy: policyPrivacy.trim(),
-          terms: policyTerms.trim(),
-          cancellation: policyCancellation.trim(),
-        },
-      });
+      const response = await adminService.updateSettings(values);
       setSettings(response.data ?? settings);
       toast.success("Clinic settings saved.");
     } catch (err) {
@@ -170,7 +154,7 @@ export default function AdminSettingsPage() {
                   <FieldError errors={[form.formState.errors.address]} />
                 </Field>
 
-                <div className="grid gap-4 sm:grid-cols-3">
+                <div className="grid gap-4 sm:grid-cols-2">
                   <Field data-invalid={Boolean(form.formState.errors.phone)}>
                     <FieldLabel htmlFor="settings-phone">Phone</FieldLabel>
                     <Input
@@ -207,81 +191,12 @@ export default function AdminSettingsPage() {
                     />
                   </Field>
 
-                  <Field
-                    data-invalid={Boolean(
-                      form.formState.errors.bookingNoticeHours,
-                    )}
-                  >
-                    <FieldLabel htmlFor="settings-notice">
-                      Minimum booking notice (hours)
-                    </FieldLabel>
-                    <Input
-                      id="settings-notice"
-                      type="number"
-                      min="0"
-                      max="168"
-                      aria-invalid={Boolean(
-                        form.formState.errors.bookingNoticeHours,
-                      )}
-                      {...form.register("bookingNoticeHours", {
-                        valueAsNumber: true,
-                      })}
-                    />
-                    <FieldError
-                      errors={[form.formState.errors.bookingNoticeHours]}
-                    />
-                  </Field>
                 </div>
                 <FieldDescription>
                   The backend enforces these rules. Changing them affects new
                   requests only; existing appointments keep their recorded terms.
                 </FieldDescription>
               </FieldGroup>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Policy copy</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Optional clinic-approved wording for the public policy pages.
-                The built-in pages remain in place when these fields are empty.
-                Do not paste legal text until the clinic has approved it.
-              </p>
-
-              <Field>
-                <FieldLabel htmlFor="settings-privacy">Privacy notice</FieldLabel>
-                <Textarea
-                  id="settings-privacy"
-                  rows={3}
-                  value={policyPrivacy}
-                  onChange={(event) => setPolicyPrivacy(event.target.value)}
-                />
-              </Field>
-
-              <Field>
-                <FieldLabel htmlFor="settings-terms">Terms of use</FieldLabel>
-                <Textarea
-                  id="settings-terms"
-                  rows={3}
-                  value={policyTerms}
-                  onChange={(event) => setPolicyTerms(event.target.value)}
-                />
-              </Field>
-
-              <Field>
-                <FieldLabel htmlFor="settings-cancellation">
-                  Cancellation policy
-                </FieldLabel>
-                <Textarea
-                  id="settings-cancellation"
-                  rows={3}
-                  value={policyCancellation}
-                  onChange={(event) => setPolicyCancellation(event.target.value)}
-                />
-              </Field>
             </CardContent>
           </Card>
 

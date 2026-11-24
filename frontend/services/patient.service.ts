@@ -21,10 +21,7 @@ export const profileSchema = z.object({
 
 export type ProfileInput = z.infer<typeof profileSchema>;
 
-/**
- * Profile endpoints wrap the record as `{ patient }`. Unwrap once here so
- * pages can treat the response data as the patient record.
- */
+// Unwrap nested patient response.
 function unwrapPatient(
   envelope: ApiEnvelope<{ patient: PatientProfile } | PatientProfile>,
 ): ApiEnvelope<PatientProfile> {
@@ -47,9 +44,15 @@ export const patientService = {
   async updateProfile(
     input: ProfileInput,
   ): Promise<ApiEnvelope<PatientProfile>> {
+    // Omit immutable authentication email.
+    const profileInput = {
+      fullName: input.fullName,
+      mobile: input.mobile,
+      dateOfBirth: input.dateOfBirth,
+    };
     const response = await api.patch<
       ApiEnvelope<{ patient: PatientProfile } | PatientProfile>
-    >("/patient/profile", input);
+    >("/patient/profile", profileInput);
     return unwrapPatient(response.data);
   },
 
@@ -83,11 +86,11 @@ export const patientService = {
 
   async requestReschedule(
     id: string,
-    input: { startAt: string; reason?: string },
+    input: { startAt: string },
   ): Promise<ApiEnvelope<unknown>> {
     const response = await api.post<ApiEnvelope<unknown>>(
       `/patient/appointments/${id}/reschedule-request`,
-      input,
+      { startAt: input.startAt },
     );
     return response.data;
   },

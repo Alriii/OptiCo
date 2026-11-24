@@ -16,6 +16,7 @@ interface PatientAppointmentActionsProps {
   onChanged: () => Promise<void> | void;
 }
 
+// Patient appointment action controls.
 export function PatientAppointmentActions({
   appointment,
   onChanged,
@@ -25,6 +26,7 @@ export function PatientAppointmentActions({
   const [time, setTime] = useState("");
   const [busy, setBusy] = useState(false);
 
+  // Dispatch appointment cancellation request.
   const requestCancellation = async () => {
     try {
       await patientService.requestCancellation(
@@ -39,6 +41,7 @@ export function PatientAppointmentActions({
     }
   };
 
+  // Dispatch appointment reschedule request.
   const requestReschedule = async () => {
     if (!date || !time) {
       toast.error("Choose a new date and time.");
@@ -55,7 +58,6 @@ export function PatientAppointmentActions({
     try {
       await patientService.requestReschedule(appointment.id, {
         startAt: startAt.toISOString(),
-        reason: "Patient requested a new time from the portal.",
       });
       toast.success("Reschedule request sent. The clinic will confirm it.");
       setRescheduleOpen(false);

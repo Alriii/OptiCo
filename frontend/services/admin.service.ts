@@ -63,7 +63,6 @@ export const settingsSchema = z.object({
   phone: z.string().trim().max(30).optional(),
   email: z.string().trim().email("Enter a valid email address.").optional().or(z.literal("")),
   cancellationCutoffHours: z.number().int().min(0).max(168).optional(),
-  bookingNoticeHours: z.number().int().min(0).max(168).optional(),
 });
 
 export type ServiceFormInput = z.infer<typeof serviceFormSchema>;
@@ -103,6 +102,83 @@ function updateDoctorPayload(input: Partial<DoctorFormInput>) {
   }
   if (input.isActive !== undefined) body.isActive = input.isActive;
   return body;
+}
+
+type WireRecord = Record<string, unknown>;
+
+function asRecord(value: unknown): WireRecord | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as WireRecord)
+    : null;
+}
+
+/** The API uses `isOpen`; the schedule UI uses `open`. Adapt at the boundary. */
+function toClientHour(value: WireRecord): ClinicHour {
+  return {
+    weekday: value.weekday as number | string,
+    open: Boolean(value.isOpen ?? value.open),
+    openTime: (value.openTime as string | null | undefined) ?? null,
+    closeTime: (value.closeTime as string | null | undefined) ?? null,
+  };
+}
+
+function mapHourPayload(payload: ListPayload<ClinicHour>): ListPayload<ClinicHour> {
+  if (Array.isArray(payload)) {
+    return payload.map((hour) => toClientHour(hour as unknown as WireRecord));
+  }
+  const hours = asRecord(payload)?.hours;
+  if (Array.isArray(hours)) {
+    return {
+      ...payload,
+      hours: hours.map((hour) => toClientHour(hour as WireRecord)),
+    } as ListPayload<ClinicHour>;
+  }
+  return payload;
+}
+
+function mapClosurePayload(
+  payload: ListPayload<ClinicClosure>,
+): ListPayload<ClinicClosure> {
+  const toClientClosure = (value: WireRecord): ClinicClosure => ({
+    ...value,
+    date:
+      (value.date as string | undefined) ??
+      (value.startsOn as string | undefined) ??
+      "",
+  }) as ClinicClosure;
+
+  if (Array.isArray(payload)) {
+    return payload.map((row) => toClientClosure(row as unknown as WireRecord));
+  }
+  const closures = asRecord(payload)?.closures;
+  if (Array.isArray(closures)) {
+    return {
+      ...payload,
+      closures: closures.map((row) => toClientClosure(row as WireRecord)),
+    } as ListPayload<ClinicClosure>;
+  }
+  return payload;
+}
+
+/** Some endpoints wrap their list under a resource-specific key. */
+function unwrapKeyedList<T>(
+  envelope: ApiEnvelope<ListPayload<T>>,
+  key: string,
+): ApiEnvelope<ListPayload<T>> {
+  const payload = envelope.data;
+  const rows = Array.isArray(payload) ? payload : asRecord(payload)?.[key];
+  return { ...envelope, data: Array.isArray(rows) ? (rows as T[]) : [] };
+}
+
+function unwrapSettings(
+  envelope: ApiEnvelope<{ settings: ClinicSettings } | ClinicSettings>,
+): ApiEnvelope<ClinicSettings> {
+  const payload = envelope.data;
+  const settings =
+    payload && asRecord(payload)?.settings
+      ? (payload as { settings: ClinicSettings }).settings
+      : (payload as ClinicSettings);
+  return { ...envelope, data: settings };
 }
 
 export const adminService = {
@@ -182,7 +258,7 @@ export const adminService = {
     const response = await api.get<ApiEnvelope<ListPayload<ClinicHour>>>(
       "/admin/clinic-hours",
     );
-    return response.data;
+    return { ...response.data, data: mapHourPayload(response.data.data) };
   },
 
   async updateClinicHours(
@@ -190,30 +266,41 @@ export const adminService = {
   ): Promise<ApiEnvelope<ListPayload<ClinicHour>>> {
     const response = await api.put<ApiEnvelope<ListPayload<ClinicHour>>>(
       "/admin/clinic-hours",
-      { hours },
+      {
+        hours: hours.map((hour) => ({
+          weekday: hour.weekday,
+          isOpen: hour.open,
+          openTime: hour.openTime || null,
+          closeTime: hour.closeTime || null,
+        })),
+      },
     );
-    return response.data;
+    return { ...response.data, data: mapHourPayload(response.data.data) };
   },
 
   async getClosures(): Promise<ApiEnvelope<ListPayload<ClinicClosure>>> {
     const response = await api.get<ApiEnvelope<ListPayload<ClinicClosure>>>(
       "/admin/closures",
     );
-    return response.data;
+    return { ...response.data, data: mapClosurePayload(response.data.data) };
   },
 
   async createClosure(
     input: ClosureInput,
-  ): Promise<ApiEnvelope<ClinicClosure>> {
-    const response = await api.post<ApiEnvelope<ClinicClosure>>(
+  ): Promise<ApiEnvelope<{ closure: ClinicClosure }>> {
+    const response = await api.post<ApiEnvelope<{ closure: ClinicClosure }>>(
       "/admin/closures",
-      input,
+      {
+        startsOn: input.date,
+        endsOn: input.date,
+        reason: input.reason,
+      },
     );
     return response.data;
   },
 
-  async deleteClosure(id: string): Promise<ApiEnvelope<null>> {
-    const response = await api.delete<ApiEnvelope<null>>(
+  async deleteClosure(id: string): Promise<ApiEnvelope<{ deleted: true }>> {
+    const response = await api.delete<ApiEnvelope<{ deleted: true }>>(
       `/admin/closures/${id}`,
     );
     return response.data;
@@ -225,25 +312,31 @@ export const adminService = {
     const response = await api.get<ApiEnvelope<ListPayload<DoctorAvailability>>>(
       `/admin/doctors/${id}/availability`,
     );
-    return response.data;
+    return unwrapKeyedList(response.data, "windows");
   },
 
   async updateDoctorAvailability(
     id: string,
-    days: DoctorAvailability[],
+    windows: DoctorAvailability[],
   ): Promise<ApiEnvelope<ListPayload<DoctorAvailability>>> {
     const response = await api.put<ApiEnvelope<ListPayload<DoctorAvailability>>>(
       `/admin/doctors/${id}/availability`,
-      { days },
+      { windows },
     );
-    return response.data;
+    return unwrapKeyedList(response.data, "windows");
   },
 
   async createDoctorException(
     id: string,
-    input: { date: string; type: string; reason?: string },
-  ): Promise<ApiEnvelope<ScheduleException>> {
-    const response = await api.post<ApiEnvelope<ScheduleException>>(
+    input: {
+      date: string;
+      startTime: string;
+      endTime: string;
+      type: string;
+      reason?: string;
+    },
+  ): Promise<ApiEnvelope<{ exception: ScheduleException }>> {
+    const response = await api.post<ApiEnvelope<{ exception: ScheduleException }>>(
       `/admin/doctors/${id}/exceptions`,
       input,
     );
@@ -279,28 +372,45 @@ export const adminService = {
   },
 
   async getSettings(): Promise<ApiEnvelope<ClinicSettings>> {
-    const response = await api.get<ApiEnvelope<ClinicSettings>>(
-      "/admin/settings",
-    );
-    return response.data;
+    const response = await api.get<
+      ApiEnvelope<{ settings: ClinicSettings } | ClinicSettings>
+    >("/admin/settings");
+    return unwrapSettings(response.data);
   },
 
   async updateSettings(
-    input: Partial<SettingsInput> & Record<string, unknown>,
+    input: Partial<SettingsInput>,
   ): Promise<ApiEnvelope<ClinicSettings>> {
-    const response = await api.patch<ApiEnvelope<ClinicSettings>>(
-      "/admin/settings",
-      input,
-    );
-    return response.data;
+    // The API rejects an empty email and strips unsupported keys; normalize
+    // both here so the settings form only sends fields the backend persists.
+    const body: Record<string, unknown> = {};
+    if (input.name !== undefined) body.name = input.name;
+    if (input.address !== undefined) body.address = input.address;
+    if (input.phone !== undefined) body.phone = input.phone;
+    if (input.cancellationCutoffHours !== undefined) {
+      body.cancellationCutoffHours = input.cancellationCutoffHours;
+    }
+    if (input.email !== undefined) body.email = input.email.trim() || null;
+    const response = await api.patch<
+      ApiEnvelope<{ settings: ClinicSettings } | ClinicSettings>
+    >("/admin/settings", body);
+    return unwrapSettings(response.data);
   },
 
   async getAuditLogs(
     params: AuditLogParams = {},
   ): Promise<ApiEnvelope<ListPayload<AuditLog>>> {
+    // The API uses `limit` and an inclusive from/to date range.
+    const query: Record<string, string | number | undefined> = {
+      page: params.page,
+      limit: params.limit,
+      action: params.action,
+      from: params.from,
+      to: params.to,
+    };
     const response = await api.get<ApiEnvelope<ListPayload<AuditLog>>>(
       "/admin/audit-logs",
-      { params },
+      { params: query },
     );
     return response.data;
   },

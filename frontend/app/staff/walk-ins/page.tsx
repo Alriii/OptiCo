@@ -72,7 +72,7 @@ export default function StaffWalkInsPage() {
     setError(null);
     try {
       const response = await staffService.getWalkIns(date);
-      setWalkIns(readList<WalkIn>(response.data, "walkIns", "queue"));
+      setWalkIns(readList<WalkIn>(response.data, "entries", "walkIns", "queue"));
     } catch (err) {
       setError(getApiError(err, "The walk-in queue could not be loaded."));
     } finally {

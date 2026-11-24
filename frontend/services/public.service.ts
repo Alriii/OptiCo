@@ -1,4 +1,3 @@
-import { z } from "zod";
 import api from "@/lib/axios";
 import type {
   ApiEnvelope,
@@ -9,47 +8,7 @@ import type {
   Service,
 } from "./types";
 
-export const bookingDetailsSchema = z.object({
-  fullName: z.string().trim().min(2, "Enter the patient's full name."),
-  email: z.string().trim().email("Enter a valid email address."),
-  mobile: z
-    .string()
-    .trim()
-    .min(7, "Enter a mobile number.")
-    .max(20, "Mobile number is too long."),
-  dateOfBirth: z.string().optional(),
-  note: z
-    .string()
-    .trim()
-    .max(500, "Keep the note under 500 characters.")
-    .optional(),
-  guardianName: z.string().trim().optional(),
-  guardianRelationship: z.string().trim().optional(),
-  guardianContact: z.string().trim().optional(),
-});
-
-export type BookingDetails = z.infer<typeof bookingDetailsSchema>;
-
-/** Patient fields the guest endpoint nests under `patient`. */
-export interface BookingPatientInput {
-  fullName: string;
-  email: string;
-  mobile?: string;
-  dateOfBirth?: string;
-  guardianName?: string;
-  guardianRelationship?: string;
-  guardianContact?: string;
-}
-
-/** Guest bookings create the patient record on the server, so details are nested. */
-export interface GuestBookingInput {
-  serviceId: string;
-  startAt: string;
-  note?: string;
-  patient: BookingPatientInput;
-}
-
-/** Signed-in patients already have a record, so the API takes only scheduling data. */
+// Authenticated patient scheduling input.
 export interface PatientBookingInput {
   serviceId: string;
   startAt: string;
@@ -64,10 +23,56 @@ export interface BookingResult {
   serviceName: string;
 }
 
+type WireRecord = Record<string, unknown>;
+
+function asRecord(value: unknown): WireRecord | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as WireRecord)
+    : null;
+}
+
+// Normalize clinic operating hours.
+function mapClinicInfo(payload: ClinicInfo): ClinicInfo {
+  if (!Array.isArray(payload?.hours)) return payload;
+  return {
+    ...payload,
+    hours: payload.hours.map((hour) => ({
+      ...hour,
+      open: Boolean(
+        (hour as unknown as WireRecord).isOpen ?? hour.open,
+      ),
+    })),
+  };
+}
+
+// Normalize doctor payload structures.
+function mapDoctorsPayload(payload: ListPayload<Doctor>): ListPayload<Doctor> {
+  const toClientDoctor = (doctor: Doctor): Doctor => {
+    const services = doctor.services as unknown as Array<Service | string>;
+    if (!Array.isArray(services)) return doctor;
+    return {
+      ...doctor,
+      services: services.map((service) =>
+        typeof service === "string" ? { id: service, name: service } : service,
+      ),
+    };
+  };
+
+  if (Array.isArray(payload)) return payload.map(toClientDoctor);
+  const doctors = asRecord(payload)?.doctors;
+  if (Array.isArray(doctors)) {
+    return {
+      ...payload,
+      doctors: (doctors as Doctor[]).map(toClientDoctor),
+    } as ListPayload<Doctor>;
+  }
+  return payload;
+}
+
 export const publicService = {
   async getClinic(): Promise<ApiEnvelope<ClinicInfo>> {
     const response = await api.get<ApiEnvelope<ClinicInfo>>("/public/clinic");
-    return response.data;
+    return { ...response.data, data: mapClinicInfo(response.data.data) };
   },
 
   async getServices(): Promise<ApiEnvelope<ListPayload<Service>>> {
@@ -81,7 +86,7 @@ export const publicService = {
     const response = await api.get<ApiEnvelope<ListPayload<Doctor>>>(
       "/public/doctors",
     );
-    return response.data;
+    return { ...response.data, data: mapDoctorsPayload(response.data.data) };
   },
 
   async getDoctor(slug: string): Promise<ApiEnvelope<Doctor>> {
@@ -98,16 +103,6 @@ export const publicService = {
     const response = await api.get<ApiEnvelope<AvailabilityResponse>>(
       "/public/availability",
       { params: { serviceId, date } },
-    );
-    return response.data;
-  },
-
-  async createAppointment(
-    input: GuestBookingInput,
-  ): Promise<ApiEnvelope<BookingResult>> {
-    const response = await api.post<ApiEnvelope<BookingResult>>(
-      "/public/appointments",
-      input,
     );
     return response.data;
   },

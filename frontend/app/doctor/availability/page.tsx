@@ -30,7 +30,9 @@ export default function DoctorAvailabilityPage() {
     setError(null);
     try {
       const response = await doctorService.getAvailability();
-      setDays(readList<DoctorAvailability>(response.data, "availability", "days"));
+      setDays(
+        readList<DoctorAvailability>(response.data, "windows", "availability", "days"),
+      );
     } catch (err) {
       setError(getApiError(err, "Your availability could not be loaded."));
     } finally {

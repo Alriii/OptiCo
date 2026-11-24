@@ -161,7 +161,7 @@ export default function AdminSchedulesPage() {
       const response = await adminService.getDoctorAvailability(doctorId);
       setAvailability(
         normalizeAvailability(
-          readList<DoctorAvailability>(response.data, "availability", "days"),
+          readList<DoctorAvailability>(response.data, "windows", "availability", "days"),
         ),
       );
     } catch (err) {

@@ -33,6 +33,7 @@ const doctorRepository = new DoctorRepository();
 const scheduleRepository = new ScheduleRepository();
 const serviceRepository = new ServiceRepository();
 
+// Verify window interval coverage.
 function coversWindow(windows: Window[], start: Date, end: Date): boolean {
   return windows.some((window) => {
     const inside = window.start.getTime() <= start.getTime() && window.end.getTime() >= end.getTime();
@@ -44,10 +45,12 @@ function coversWindow(windows: Window[], start: Date, end: Date): boolean {
   });
 }
 
+// Detect overlapping time intervals.
 function anyOverlap(intervals: Window[], start: Date, end: Date): boolean {
   return intervals.some((interval) => rangesOverlap(start, end, interval.start, interval.end));
 }
 
+// Build daily schedule context.
 export async function buildDayContext(
   doctorId: string,
   dateStr: string,
@@ -101,6 +104,7 @@ export async function buildDayContext(
   return { closed, clinicStart, clinicEnd, weekly, additional, unavailable, blocking };
 }
 
+// Verify doctor slot availability.
 export function isDoctorFree(
   context: DayContext,
   service: Pick<Service, "durationMinutes" | "bufferBeforeMinutes" | "bufferAfterMinutes">,
@@ -123,6 +127,7 @@ export function isDoctorFree(
   return true;
 }
 
+// Query public appointment slots.
 export async function getAvailability(serviceId: string, dateStr: string) {
   if (!isValidManilaDate(dateStr)) throw new AppError(400, "Date must be a valid YYYY-MM-DD Manila date");
 
@@ -161,7 +166,7 @@ export async function getAvailability(serviceId: string, dateStr: string) {
   return { date: dateStr, timezone: "Asia/Manila" as const, slots };
 }
 
-/** Request validation ignores existing bookings because pending requests do not reserve slots. */
+// Validate schedule doctor availability.
 export async function hasScheduleCoverage(service: Service, startAt: Date): Promise<boolean> {
   const dateStr = manilaDateString(startAt);
   const doctors = await doctorRepository.listEligibleForService(service.id);
@@ -171,16 +176,14 @@ export async function hasScheduleCoverage(service: Service, startAt: Date): Prom
   return contexts.some((context) => isDoctorFree(context, service, startAt, false));
 }
 
+// Ensure slot interval alignment.
 export function assertAlignedSlot(startAt: Date) {
   if (startAt.getTime() % (STEP_MINUTES * 60_000) !== 0) {
     throw new AppError(400, "Requested time must align to a 15-minute slot");
   }
 }
 
-/**
- * Locks eligible doctor rows in id order, rechecks the full interval, then
- * picks the least busy doctor. Must run inside the approval transaction.
- */
+// Assign balanced eligible doctor.
 export async function assignDoctor(service: Service, startAt: Date, client: DbClient): Promise<string | null> {
   const dateStr = manilaDateString(startAt);
   const candidateIds = await doctorRepository.lockEligibleForService(service.id, client);

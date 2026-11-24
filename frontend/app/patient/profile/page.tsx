@@ -119,16 +119,18 @@ export default function PatientProfilePage() {
                     <FieldError errors={[form.formState.errors.fullName]} />
                   </Field>
 
-                  <Field data-invalid={Boolean(form.formState.errors.email)}>
+                  <Field>
                     <FieldLabel htmlFor="profile-email">Email</FieldLabel>
                     <Input
                       id="profile-email"
                       type="email"
                       autoComplete="email"
-                      aria-invalid={Boolean(form.formState.errors.email)}
+                      readOnly
                       {...form.register("email")}
                     />
-                    <FieldError errors={[form.formState.errors.email]} />
+                    <FieldDescription>
+                      Account email is managed through sign-in settings.
+                    </FieldDescription>
                   </Field>
 
                   <Field data-invalid={Boolean(form.formState.errors.mobile)}>

@@ -37,9 +37,10 @@ export default function AdminAuditLogsPage() {
     try {
       const response = await adminService.getAuditLogs({
         action: action.trim() || undefined,
-        date: date || undefined,
+        from: date || undefined,
+        to: date || undefined,
         page,
-        pageSize: 20,
+        limit: 20,
       });
       setLogs(readList<AuditLog>(response.data, "logs", "auditLogs"));
       setTotal(

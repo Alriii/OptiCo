@@ -31,6 +31,7 @@ export type BookingInput = {
   patient?: GuestPatientInput;
 };
 
+// Validate minor patient guardian.
 function validateGuardian(patient: GuestPatientInput, startAt: Date) {
   if (!patient.dateOfBirth) return;
   if (!isValidManilaDate(patient.dateOfBirth)) throw new AppError(400, "Date of birth is invalid");
@@ -43,12 +44,14 @@ function validateGuardian(patient: GuestPatientInput, startAt: Date) {
   }
 }
 
+// Fetch active service record.
 async function loadBookableService(serviceId: string): Promise<Service> {
   const service = await serviceRepository.findById(serviceId);
   if (!service || !service.isActive) throw new AppError(404, "Service not found");
   return service;
 }
 
+// Verify slot schedule coverage.
 async function validateSlot(service: Service, startAt: Date, patient: GuestPatientInput) {
   if (Number.isNaN(startAt.getTime())) throw new AppError(400, "Requested time is invalid");
   if (startAt.getTime() <= Date.now()) throw new AppError(400, "Requested time must be in the future");
@@ -59,6 +62,7 @@ async function validateSlot(service: Service, startAt: Date, patient: GuestPatie
   if (!covered) throw new AppError(409, "No doctor schedule covers that time. Please choose another slot.");
 }
 
+// Dispatch booking notification emails.
 async function notifyRequestReceived(appointmentId: string, reference: string, serviceName: string, patient: Patient, startAt: Date, doctorName = "") {
   const settings = await settingsRepository.get();
   const clinicName = settings?.name ?? "OptiCo";
@@ -81,6 +85,7 @@ async function notifyRequestReceived(appointmentId: string, reference: string, s
   }
 }
 
+// Process guest booking request.
 export async function createGuestBookingService(input: BookingInput) {
   if (!input.patient) throw new AppError(400, "Patient details are required");
   const service = await loadBookableService(input.serviceId);
@@ -118,6 +123,7 @@ export async function createGuestBookingService(input: BookingInput) {
   };
 }
 
+// Process authenticated patient booking.
 export async function createPatientBookingService(userId: string, input: BookingInput) {
   const service = await loadBookableService(input.serviceId);
   const startAt = new Date(input.startAt);

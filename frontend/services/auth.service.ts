@@ -18,7 +18,7 @@ export const signupSchema = z.object({
 });
 
 export const acceptInviteSchema = z.object({
-  token: z.string().min(1, "Invitation token is required."),
+  token: z.string().min(20, "Enter the full invitation token."),
   password: z
     .string()
     .min(8, "Use at least 8 characters.")
@@ -43,7 +43,7 @@ export const authService = {
       "/auth/login",
       input,
     );
-    // The refresh cookie and CSRF pair rotate on login.
+    // Rotate session authentication tokens.
     await refreshCsrfToken();
     return response.data;
   },
@@ -56,8 +56,10 @@ export const authService = {
     return response.data;
   },
 
-  async logout(): Promise<ApiEnvelope<null>> {
-    const response = await api.post<ApiEnvelope<null>>("/auth/logout");
+  async logout(): Promise<ApiEnvelope<{ loggedOut: true }>> {
+    const response = await api.post<ApiEnvelope<{ loggedOut: true }>>(
+      "/auth/logout",
+    );
     clearCsrfToken();
     await refreshCsrfToken();
     return response.data;
